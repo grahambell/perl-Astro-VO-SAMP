@@ -23,11 +23,11 @@ Astro::VO::SAMP::Util - Utility routines
 =head1 SYNOPSIS
 
   use Astro::VO::SAMP::Data;
-  
+
   my $reference = Astro::VO::SAMP::Data::string( $scalar );
-  my $reference = Astro::VO::SAMP::Data::list( @array );  
-  my $reference = Astro::VO::SAMP::Data::map( %hash );  
-    
+  my $reference = Astro::VO::SAMP::Data::list( @array );
+  my $reference = Astro::VO::SAMP::Data::map( %hash );
+
 =head1 DESCRIPTION
 
 This module contains utility routines to convert arrays, scalars and hashes
@@ -41,8 +41,8 @@ sub string {
 }
 
 sub list {
-  my @array = @_; 
-  
+  my @array = @_;
+
   my @list;
   foreach my $i ( 0 ... $#array ) {
      push @list, XMLRPC::Data->type( string => $array[$i] );
@@ -50,23 +50,23 @@ sub list {
   return \@list;
 }
 
-sub map { 
+sub map {
    my %hash = @_;
-   
+
    my %map;
    foreach my $key ( sort keys %hash ) {
       if ( isa $hash{$key}, "HASH" ) {
          my %subhash = %{$hash{$key}};
          foreach my $subkey ( sort keys %subhash ) {
-	    $subhash{$subkey} = XMLRPC::Data->type(string=>$subhash{$subkey});
-	 } 
-	 $map{$key} = \%subhash;
+            $subhash{$subkey} = XMLRPC::Data->type(string=>$subhash{$subkey});
+         }
+         $map{$key} = \%subhash;
       } else {
          $map{$key} = XMLRPC::Data->type( string => $hash{$key} );
-      }	 
+      }
    }
    return \%map;
-}          
+}
 
 
 =back

@@ -35,12 +35,12 @@ use Astro::VO::SAMP::Client::Util;
 
 use sigtrap qw/ die normal-signals error-signals /;
 
-$SIG{INT} = sub {  
+$SIG{INT} = sub {
    print "Trapped SIGINT\n";
    exit;
 };
 
-$SIG{TERM} = sub {   
+$SIG{TERM} = sub {
    print "Trapped SIGTERM\n";
    exit;
 };
@@ -54,12 +54,12 @@ GetOptions( "port=s"  => \$port );
 
 unless ( defined $port ) {
    $port = 8003;
-}   
+}
 
 unless ( defined $host ) {
    # localhost.localdoamin
    $host = inet_ntoa(scalar(gethostbyname(hostname())));
-} 
+}
 
 my %metadata;
 $metadata{"samp.name"} = "notifyAll";
@@ -81,12 +81,12 @@ while( 1 ) {
    print "Forking server...\n";
    $pid = Astro::VO::SAMP::Client::Util::fork_server( $host, $port );
    push @childs, $pid;
-   
+
    print "Waiting for server to start...\n";
    sleep(5);
 
 # R E G I S T E R   C A L L B A C K  A D D R E S S  W I T H  H U B -------------
-   
+
    print "Sending XMLRPC Callback address to Hub...\n";
    my $address = Astro::VO::SAMP::Data::string( "http://$host:$port" );
    my $status = Astro::VO::SAMP::Client::Util::send_xmlrpc_callback( $address );
@@ -94,7 +94,7 @@ while( 1 ) {
       print "Sucessfully registered callback address with Hub\n";
    } else {
       print "Problems registering callback address with Hub. Hub down?\n";
-   }   
+   }
 
 # R E G I S T E R   M - T Y P E S  W I T H  H U B -----------------------------
 
@@ -108,49 +108,49 @@ while( 1 ) {
    if ( $status ) {
       print "Sucessfully registered MTypes with Hub\n";
    } else {
-      print "Problems registering MTypes with Hub. Hub down?\n"; 
-   }   
+      print "Problems registering MTypes with Hub. Hub down?\n";
+   }
 
    print "Done registering with the hub, waiting to handle...\n";
 
-# H E A R T B E A T -----------------------------------------------------------   
+# H E A R T B E A T -----------------------------------------------------------
 
    print "Forking heartbeat...\n";
    if ($pid = fork) {
        print "Continuing... pid = $pid\n";
    } elsif ( defined $pid && $pid == 0 ) {
-       print "Forking heartbeat process... pid = $pid\n"; 
+       print "Forking heartbeat process... pid = $pid\n";
        while( 1 ) {
           sleep(10);
           print "\nHeartbeat at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
-	  
-	  my $status;
+
+          my $status;
           if ( Astro::VO::SAMP::Discovery::hub_running( ) ) {
-	     print "Calling notifyAll( coord.event.pointAt ) in Hub\n";
+             print "Calling notifyAll( coord.event.pointAt ) in Hub\n";
              my $rpc = new XMLRPC::Lite();
              my $url = Astro::VO::SAMP::Discovery::get_xmlrpc_url( );
              $rpc->proxy( $url );
-      
+
              my %message;
-	     $message{mtype} = Astro::VO::SAMP::Data::string( "coord.event.pointAt" );
-	     my %params = ( "ra" => "180.0", "dec" => "-45.0" );
-	     $message{params} = Astro::VO::SAMP::Data::map( %params );
-	     print "Passing RA = $params{ra}, Dec = $params{dec} to Hub\n";	     
-      
-             my ( $return, $status ); 
-             eval{ $return = $rpc->call( 'samp.hub.notifyAll', 
-      			Astro::VO::SAMP::Client::private_key( ), \%message ); };
+             $message{mtype} = Astro::VO::SAMP::Data::string( "coord.event.pointAt" );
+             my %params = ( "ra" => "180.0", "dec" => "-45.0" );
+             $message{params} = Astro::VO::SAMP::Data::map( %params );
+             print "Passing RA = $params{ra}, Dec = $params{dec} to Hub\n";
+
+             my ( $return, $status );
+             eval{ $return = $rpc->call( 'samp.hub.notifyAll',
+                        Astro::VO::SAMP::Client::private_key( ), \%message ); };
              unless ( $@ || $return->fault() ) {
                 $status = $return->result();
              }
-	          
+
           } else {
-	     print "Hub no longer running. Exiting...\n";
-	     exit(0);
-	  }
-	  
+             print "Hub no longer running. Exiting...\n";
+             exit(0);
+          }
+
        }
-   }      
+   }
    push @childs, $pid;
 
 # M A I N   L O O P -----------------------------------------------------------
@@ -159,10 +159,10 @@ while( 1 ) {
    foreach ( @childs ) {
       waitpid($_, 0);
       print "Child process $_ has died\n";
-   } 
-   undef @childs;  
+   }
+   undef @childs;
 }
-  
+
 # C L E A N   U P -------------------------------------------------------------
 
 END {
@@ -174,7 +174,7 @@ END {
       print "Parent process exiting...\n";
    } else {
       print "Child process exiting...\n";
-   }   
+   }
    exit;
 }
 

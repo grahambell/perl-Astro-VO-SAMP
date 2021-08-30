@@ -36,12 +36,12 @@ use Astro::VO::SAMP::Client::Util;
 
 use sigtrap qw/ die normal-signals error-signals /;
 
-$SIG{INT} = sub {  
+$SIG{INT} = sub {
    print "Trapped SIGINT\n";
    exit;
 };
 
-$SIG{TERM} = sub {   
+$SIG{TERM} = sub {
    print "Trapped SIGTERM\n";
    exit;
 };
@@ -55,12 +55,12 @@ GetOptions( "port=s"  => \$port );
 
 unless ( defined $port ) {
    $port = 8002;
-}   
+}
 
 unless ( defined $host ) {
    # localhost.localdoamin
    $host = inet_ntoa(scalar(gethostbyname(hostname())));
-}  
+}
 
 # Appliation specific metadata
 my %metadata;
@@ -87,7 +87,7 @@ while( 1 ) {
    sleep(5);
 
 # R E G I S T E R   C A L L B A C K  A D D R E S S  W I T H  H U B -------------
-   
+
    print "Sending XMLRPC Callback address to Hub...\n";
    my $address = Astro::VO::SAMP::Data::string( "http://$host:$port" );
    my $status = Astro::VO::SAMP::Client::Util::send_xmlrpc_callback( $address );
@@ -95,7 +95,7 @@ while( 1 ) {
       print "Sucessfully registered callback address with Hub\n";
    } else {
       print "Problems registering callback address with Hub. Hub down?\n";
-   }   
+   }
 
 # R E G I S T E R   M - T Y P E S  W I T H  H U B -----------------------------
 
@@ -105,14 +105,14 @@ while( 1 ) {
    push @mtypes, "coord.pointAt";
    push @mtypes, "app.event.starting";
    push @mtypes, "app.event.stopping";
-   
+
    my $data = Astro::VO::SAMP::Data::list( @mtypes );
    my $status = Astro::VO::SAMP::Client::Util::send_mtypes( $data );
    if ( $status ) {
       print "Sucessfully registered MTypes with Hub\n";
    } else {
-      print "Problems registering MTypes with Hub. Hub down?\n"; 
-   }   
+      print "Problems registering MTypes with Hub. Hub down?\n";
+   }
 
    print "Done registering with the hub, waiting to handle...\n";
 
@@ -121,14 +121,14 @@ while( 1 ) {
    print "Main thread waiting for harvest at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
    waitpid($pid, 0);
 }
-  
+
 # C L E A N   U P -------------------------------------------------------------
 
 END {
    if( defined $pid && $pid != 0 ) {
       print "Un-registering with Hub...";
       Astro::VO::SAMP::Client::Util::unregister();
-   }   
+   }
    print "Done.\n";
    exit;
 }

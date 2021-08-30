@@ -12,12 +12,12 @@ samp_hub.pl - A SAMP Hub
 
 =head1 DESCRIPTION
 
-This is a prototype SAMP Hub implementing the IVOA's Simple Application 
-Messaging Protocol Version 1.00 (IVOA Working Draft 2008-04-30). SAMP is a 
+This is a prototype SAMP Hub implementing the IVOA's Simple Application
+Messaging Protocol Version 1.00 (IVOA Working Draft 2008-04-30). SAMP is a
 direct decendent of the PLASTIC protocol. Broadly speaking, SAMP is an abstract
-framework for loosely coupled asynchronous RPC-like and/or event-based 
-communication with extensible message semantics using structured but 
-weakly-typed data and based on a central service providing multi-directional 
+framework for loosely coupled asynchronous RPC-like and/or event-based
+communication with extensible message semantics using structured but
+weakly-typed data and based on a central service providing multi-directional
 publish/subscribe message brokering.
 
 This application implements a version of the protocol defined by the Standard
@@ -42,7 +42,7 @@ use Astro::VO::SAMP::Hub::Util;
 
 use sigtrap qw/ die normal-signals error-signals /;
 
-$SIG{INT} = sub {  
+$SIG{INT} = sub {
    print "Trapped SIGINT\n";
    print "Notify all clients...\n";
    Astro::VO::SAMP::Hub::Util::notify_hub_shutting_down( );
@@ -53,7 +53,7 @@ $SIG{INT} = sub {
    exit;
 };
 
-$SIG{TERM} = sub {   
+$SIG{TERM} = sub {
    print "Trapped SIGTERM\n";
    print "Notify all clients...\n";
    Astro::VO::SAMP::Hub::Util::notify_hub_shutting_down( );
@@ -72,18 +72,18 @@ print "Prototype SAMP Hub v$VERSION\n\n";
 GetOptions( "port=s" => \$port );
 unless ( defined $port ) {
    $port = 8001;
-}   
+}
 
 unless ( defined $host ) {
    # localhost.localdoamin
    $host = inet_ntoa(scalar(gethostbyname(hostname())));
-} 
+}
 
 # H U B   D I S C O V E R Y ----------------------------------------------------
 
 print "Checking for running Hub process...\n";
 
-# We check for an existing SAMP lockfile, if file exists try to connect to 
+# We check for an existing SAMP lockfile, if file exists try to connect to
 # the running hub. If the hub is running we should shut down, if it's died
 # then we should delete the lock file and start up our own hub process.
 
@@ -105,12 +105,12 @@ if ( $file_status ) {
    if ( $@ ) {
       croak( "$@" );
    } else {
-      print "Unlinked orphan lock file\n";   
+      print "Unlinked orphan lock file\n";
    }
    print "Cleaning up previous Hub's metadata files...\n";
-   Astro::VO::SAMP::Hub::MetaData::delete_files( );   
-}       
- 
+   Astro::VO::SAMP::Hub::MetaData::delete_files( );
+}
+
 # A P P L I C A T I O N   K E Y S ---------------------------------------------
 
 print "Generating public and private keys for Hub\n";
@@ -123,10 +123,10 @@ print "private_id = $hub_private_id\n";
 # store them in the Astro::VO::SAMP::Hub class for later retrieveal from forked threads
 Astro::VO::SAMP::Hub::public_key( $hub_public_id );
 Astro::VO::SAMP::Hub::private_key( $hub_private_id );
- 
-# X M L - R P C   S E R V E R ------------------------------------------------- 
 
-# We should start an XML-RPC server, after sucessfully doing so we need to 
+# X M L - R P C   S E R V E R -------------------------------------------------
+
+# We should start an XML-RPC server, after sucessfully doing so we need to
 # create a SAMP lock file to point to our new XML-RPC end point.
 
 print "Starting XMLRPC Daemon...\n";
@@ -136,29 +136,29 @@ eval { $daemon = new Astro::VO::SAMP::Transport::HTTP::Daemon(
        LocalPort => $port, LocalHost => $host, ReuseAddr => 1 ); };
 if ( $@ ) {
    croak( "$@" );
-} 
+}
 
 # We're using inheritence as syntactic to work around the auto-dispatch path
 # problems and dispatch to properly camel cased objects. We probably should
 # do $daemon->dispatch_to('samp::hub::isAlive' => 'Astro::VO::SAMP::Hub::isAlive') for
 # each method but the "use base" hack seems cleaner.
 
-$daemon->dispatch_to( "samp::hub" ) ; 
+$daemon->dispatch_to( "samp::hub" ) ;
 
-my $url = $daemon->url();   
+my $url = $daemon->url();
 print "Started at $url\n";
 
 eval { Astro::VO::SAMP::Hub::Util::create_lock_file( $url ); };
 if ( $@ ) {
    croak( "$@" );
 } else {
-   print "Created a lock file\n";   
+   print "Created a lock file\n";
 }
 
-eval { $daemon->handle; };  
+eval { $daemon->handle; };
 if ( $@ ) {
   croak( "$@" );
-}  
+}
 
 # C L E A N   U P -------------------------------------------------------------
 
@@ -170,7 +170,7 @@ Astro::VO::SAMP::Hub::Util::delete_lock_file( );
 Astro::VO::SAMP::Hub::MetaData::delete_files( );
 
 END {
-   
+
    # TO DO - send shutdown message to all registered clients
    print "Done.\n";
    exit;
