@@ -1,11 +1,10 @@
 #!/usr/bin/perl
 
 use strict;
-use lib "./lib/perl5/";     
 
 =head1 NAME
 
-callAll_test.pl - A SAMP Test Client
+notifyAll_test.pl - A SAMP Test Client
 
 =head1 SYNOPSIS
 
@@ -14,8 +13,8 @@ callAll_test.pl - A SAMP Test Client
 =head1 DESCRIPTION
 
 This is a simple SAMP client which will register itself with a SAMP Hub and
-call callAll( ) in the Hub periodlically. By default it will generate
-coord.pointAt messages.
+call notifyAll( ) in the Hub periodlically. By default it will generate
+coord.event.pointAt messages.
 
 This application implements a version of the protocol defined by the Standard
 Profile XML-RPC API as specified in the IVOA Working Draft document.
@@ -30,9 +29,9 @@ use Getopt::Long;
 use Socket;
 use Net::Domain qw(hostname hostdomain);
 
-use SAMP::Data;
-use SAMP::Client;
-use SAMP::Client::Util;
+use Astro::VO::SAMP::Data;
+use Astro::VO::SAMP::Client;
+use Astro::VO::SAMP::Client::Util;
 
 use sigtrap qw/ die normal-signals error-signals /;
 
@@ -48,13 +47,13 @@ $SIG{TERM} = sub {
 
 # C O M MA N D   L I N E -------------------------------------------------------
 
-print "Testbed SAMP CallAll Client v$VERSION\n\n";
+print "Testbed SAMP NotifyAll Client v$VERSION\n\n";
 
 # Handle command line options
 GetOptions( "port=s"  => \$port );
 
 unless ( defined $port ) {
-   $port = 8004;
+   $port = 8003;
 }   
 
 unless ( defined $host ) {
@@ -63,24 +62,24 @@ unless ( defined $host ) {
 } 
 
 my %metadata;
-$metadata{"samp.name"} = "callAll";
-$metadata{"samp.description.text"} = "This is a SAMP test client that periodically calls callAll.";
-$metadata{"samp.description.html"} = "<p>This is a SAMP test client that periodically calls callAll.</p>";
+$metadata{"samp.name"} = "notifyAll";
+$metadata{"samp.description.text"} = "This is a SAMP test client that periodically calls notifyAll.";
+$metadata{"samp.description.html"} = "<p>This is a SAMP test client that periodically calls notifyAll.</p>";
 $metadata{"samp.icon.url"} =  "http://www.babilim.co.uk/png/babilim_logo.png";
 $metadata{$metadata{"samp.name"}.".version"} = $VERSION;
-SAMP::Client::metadata( %metadata );
+Astro::VO::SAMP::Client::metadata( %metadata );
 
 # H U B   D I S C O V E R Y ----------------------------------------------------
 
 my @childs;
 while( 1 ) {
 
-   SAMP::Client::Util::hub_discovery( );
+   Astro::VO::SAMP::Client::Util::hub_discovery( );
 
 # X M L - R P C  D A E M O N -----------------------------------------------------
 
    print "Forking server...\n";
-   $pid = SAMP::Client::Util::fork_server( $host, $port );
+   $pid = Astro::VO::SAMP::Client::Util::fork_server( $host, $port );
    push @childs, $pid;
    
    print "Waiting for server to start...\n";
@@ -89,8 +88,8 @@ while( 1 ) {
 # R E G I S T E R   C A L L B A C K  A D D R E S S  W I T H  H U B -------------
    
    print "Sending XMLRPC Callback address to Hub...\n";
-   my $address = SAMP::Data::string( "http://$host:$port" );
-   my $status = SAMP::Client::Util::send_xmlrpc_callback( $address );
+   my $address = Astro::VO::SAMP::Data::string( "http://$host:$port" );
+   my $status = Astro::VO::SAMP::Client::Util::send_xmlrpc_callback( $address );
    if ( $status ) {
       print "Sucessfully registered callback address with Hub\n";
    } else {
@@ -104,8 +103,8 @@ while( 1 ) {
    push @mtypes, "app.event.starting";
    push @mtypes, "app.event.stopping";
 
-   my $data = SAMP::Data::list( @mtypes );
-   my $status = SAMP::Client::Util::send_mtypes( $data );
+   my $data = Astro::VO::SAMP::Data::list( @mtypes );
+   my $status = Astro::VO::SAMP::Client::Util::send_mtypes( $data );
    if ( $status ) {
       print "Sucessfully registered MTypes with Hub\n";
    } else {
@@ -123,26 +122,24 @@ while( 1 ) {
        print "Forking heartbeat process... pid = $pid\n"; 
        while( 1 ) {
           sleep(10);
-          print "\nHeartbeat at " . SAMP::Util::time_in_UTC() . "\n";
+          print "\nHeartbeat at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
 	  
 	  my $status;
-          if ( SAMP::Discovery::hub_running( ) ) {
-	     print "Calling callAll( coord.pointAt ) in Hub\n";
+          if ( Astro::VO::SAMP::Discovery::hub_running( ) ) {
+	     print "Calling notifyAll( coord.event.pointAt ) in Hub\n";
              my $rpc = new XMLRPC::Lite();
-             my $url = SAMP::Discovery::get_xmlrpc_url( );
+             my $url = Astro::VO::SAMP::Discovery::get_xmlrpc_url( );
              $rpc->proxy( $url );
       
              my %message;
-	     $message{mtype} = SAMP::Data::string( "coord.pointAt" );
+	     $message{mtype} = Astro::VO::SAMP::Data::string( "coord.event.pointAt" );
 	     my %params = ( "ra" => "180.0", "dec" => "-45.0" );
-	     $message{params} = SAMP::Data::map( %params );
+	     $message{params} = Astro::VO::SAMP::Data::map( %params );
 	     print "Passing RA = $params{ra}, Dec = $params{dec} to Hub\n";	     
       
              my ( $return, $status ); 
-             eval{ $return = $rpc->call( 'samp.hub.callAll', 
-      			SAMP::Client::private_key( ), 
-			SAMP::Client::Util::generate_msg_id( ), 
-			\%message ); };
+             eval{ $return = $rpc->call( 'samp.hub.notifyAll', 
+      			Astro::VO::SAMP::Client::private_key( ), \%message ); };
              unless ( $@ || $return->fault() ) {
                 $status = $return->result();
              }
@@ -158,7 +155,7 @@ while( 1 ) {
 
 # M A I N   L O O P -----------------------------------------------------------
 
-   print "Main thread waiting for harvest at " . SAMP::Util::time_in_UTC() . "\n";
+   print "Main thread waiting for harvest at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
    foreach ( @childs ) {
       waitpid($_, 0);
       print "Child process $_ has died\n";
@@ -173,7 +170,7 @@ END {
    # only unregister if we're the parent process
    if( defined $pid && $pid != 0 ) {
       print "Un-registering with Hub...\n";
-      SAMP::Client::Util::unregister();
+      Astro::VO::SAMP::Client::Util::unregister();
       print "Parent process exiting...\n";
    } else {
       print "Child process exiting...\n";
@@ -201,6 +198,6 @@ Copyright (C) 2008 Babilim Light Industries. All Rights Reserved.
 # S A M P : : C L I E N T ------------------------------------------------------
 
 package samp::client;
-use base ( "SAMP::Client" );
+use base ( "Astro::VO::SAMP::Client" );
 
 #1;

@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 
 use strict;
-use lib "./lib/perl5/";     
 
 =head1 NAME
 
@@ -31,9 +30,9 @@ use Getopt::Long;
 use Socket;
 use Net::Domain qw(hostname hostdomain);
 
-use SAMP::Data;
-use SAMP::Client;
-use SAMP::Client::Util;
+use Astro::VO::SAMP::Data;
+use Astro::VO::SAMP::Client;
+use Astro::VO::SAMP::Client::Util;
 
 use sigtrap qw/ die normal-signals error-signals /;
 
@@ -70,19 +69,19 @@ $metadata{"samp.description.text"} = "This is a SAMP test client that listens fo
 $metadata{"samp.description.html"} = "<p>This is a SAMP test client that listens for messages.</p>";
 $metadata{"samp.icon.url"} =  "http://www.babilim.co.uk/png/babilim_logo.png";
 $metadata{$metadata{"samp.name"}.".version"} = $VERSION;
-SAMP::Client::metadata( %metadata );
+Astro::VO::SAMP::Client::metadata( %metadata );
 
 # H U B   D I S C O V E R Y ----------------------------------------------------
 
 my $pid;
 while( 1 ) {
 
-   SAMP::Client::Util::hub_discovery( );
+   Astro::VO::SAMP::Client::Util::hub_discovery( );
 
 # X M L - R P C  D A E M O N -----------------------------------------------------
 
    print "Forking...\n";
-   $pid = SAMP::Client::Util::fork_server( $host, $port );
+   $pid = Astro::VO::SAMP::Client::Util::fork_server( $host, $port );
 
    print "Waiting for server to start...\n";
    sleep(5);
@@ -90,8 +89,8 @@ while( 1 ) {
 # R E G I S T E R   C A L L B A C K  A D D R E S S  W I T H  H U B -------------
    
    print "Sending XMLRPC Callback address to Hub...\n";
-   my $address = SAMP::Data::string( "http://$host:$port" );
-   my $status = SAMP::Client::Util::send_xmlrpc_callback( $address );
+   my $address = Astro::VO::SAMP::Data::string( "http://$host:$port" );
+   my $status = Astro::VO::SAMP::Client::Util::send_xmlrpc_callback( $address );
    if ( $status ) {
       print "Sucessfully registered callback address with Hub\n";
    } else {
@@ -107,8 +106,8 @@ while( 1 ) {
    push @mtypes, "app.event.starting";
    push @mtypes, "app.event.stopping";
    
-   my $data = SAMP::Data::list( @mtypes );
-   my $status = SAMP::Client::Util::send_mtypes( $data );
+   my $data = Astro::VO::SAMP::Data::list( @mtypes );
+   my $status = Astro::VO::SAMP::Client::Util::send_mtypes( $data );
    if ( $status ) {
       print "Sucessfully registered MTypes with Hub\n";
    } else {
@@ -119,7 +118,7 @@ while( 1 ) {
 
 # M A I N   L O O P -----------------------------------------------------------
 
-   print "Main thread waiting for harvest at " . SAMP::Util::time_in_UTC() . "\n";
+   print "Main thread waiting for harvest at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
    waitpid($pid, 0);
 }
   
@@ -128,7 +127,7 @@ while( 1 ) {
 END {
    if( defined $pid && $pid != 0 ) {
       print "Un-registering with Hub...";
-      SAMP::Client::Util::unregister();
+      Astro::VO::SAMP::Client::Util::unregister();
    }   
    print "Done.\n";
    exit;
@@ -154,6 +153,6 @@ Copyright (C) 2008 Babilim Light Industries. All Rights Reserved.
 # S A M P : : C L I E N T ------------------------------------------------------
 
 package samp::client;
-use base ( "SAMP::Client" );
+use base ( "Astro::VO::SAMP::Client" );
 
 #1;

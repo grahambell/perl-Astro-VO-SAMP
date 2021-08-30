@@ -1,13 +1,13 @@
-package SAMP::Hub;
+package Astro::VO::SAMP::Hub;
 
 use strict;
 use warnings;
 
 use XMLRPC::Lite;
 
-use SAMP::Util;
-use SAMP::Data;
-use SAMP::Hub::MetaData;
+use Astro::VO::SAMP::Util;
+use Astro::VO::SAMP::Data;
+use Astro::VO::SAMP::Hub::MetaData;
 
 require Exporter;
 
@@ -21,11 +21,11 @@ use vars qw/ $VERSION @EXPORT_OK @ISA $PRIVATE_KEY $PUBLIC_KEY /;
 
 =head1 NAME
 
-SAMP::Hub - Routines to handle SAMP calls
+Astro::VO::SAMP::Hub - Routines to handle SAMP calls
 
 =head1 SYNOPSIS
 
-  use SAMP::Hub;
+  use Astro::VO::SAMP::Hub;
 
 =head1 DESCRIPTION
 
@@ -53,34 +53,34 @@ sub public_key {
 
 
 sub isAlive {
-   print "isAlive( ) called at " . SAMP::Util::time_in_UTC() . "\n";
-   return SAMP::Data::string( 1 ); 
+   print "isAlive( ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+   return Astro::VO::SAMP::Data::string( 1 ); 
 }
 
 sub getHubId {
-   print "getHubId( ) called at " . SAMP::Util::time_in_UTC() . "\n";
-   return SAMP::Data::string( public_key() );
+   print "getHubId( ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+   return Astro::VO::SAMP::Data::string( public_key() );
 }   
 
 sub register {
    my $self = shift;
    my $token = shift;
-   print "register(  ) called at " . SAMP::Util::time_in_UTC() . "\n";
+   print "register(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
    
    my ( $public_id, $private_id);
-   if ( $token eq SAMP::Discovery::get_samp_secret( ) ) {
-      ( $public_id, $private_id) = SAMP::Hub::Util::generate_app_keys( );
+   if ( $token eq Astro::VO::SAMP::Discovery::get_samp_secret( ) ) {
+      ( $public_id, $private_id) = Astro::VO::SAMP::Hub::Util::generate_app_keys( );
       print "Registering client...\n";
       print "client-id = $public_id\n";
       print "private-key = $private_id\n";
       
-      eval{ SAMP::Hub::MetaData::write_metadata( 
+      eval{ Astro::VO::SAMP::Hub::MetaData::write_metadata( 
                  $private_id, "client.id" => $public_id ); };
       if ( $@ ) {
          print "$@";
 	 undef $private_id;
       }
-      eval{ SAMP::Hub::MetaData::add_application( $private_id, $public_id ); };
+      eval{ Astro::VO::SAMP::Hub::MetaData::add_application( $private_id, $public_id ); };
       if ( $@ ) {
          print "$@";
 	 undef $private_id;
@@ -90,20 +90,20 @@ sub register {
    
    # TO DO - Broadcast to all registered clients the $public_id of the client
           
-   return SAMP::Data::string( $private_id ); 
+   return Astro::VO::SAMP::Data::string( $private_id ); 
 }   
 
 sub unregister {
    my $self = shift;
    my $private_key = shift;
-   print "unregister(  ) called at " . SAMP::Util::time_in_UTC() . "\n";
-   my $app = SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
+   print "unregister(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+   my $app = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
    
    # Deal with clients that aren't registered
    unless( $app ) {
       print "Client private-key = $private_key\n";
       print "Client doesn't seem to be registed. Ignorning request\n";
-      return SAMP::Data::string( 1 ); 
+      return Astro::VO::SAMP::Data::string( 1 ); 
    }
    
    # deal wit the rest
@@ -111,14 +111,14 @@ sub unregister {
    print "private-key = $private_key\n";
    my $status;
    print "Deleting metadata file...\n";
-   eval{ $status = SAMP::Hub::MetaData::delete_metadata( $private_key ); };
+   eval{ $status = Astro::VO::SAMP::Hub::MetaData::delete_metadata( $private_key ); };
    if ( $@ ) {
       print "$@";
    } else {
       print "Deleted metadata cache file\n";
    }
    print "Deleting entry from application list...\n";
-   eval{ SAMP::Hub::MetaData::remove_application( $private_key ); };
+   eval{ Astro::VO::SAMP::Hub::MetaData::remove_application( $private_key ); };
    if ( $@ ) {
       print "$@";
    } else {
@@ -128,7 +128,7 @@ sub unregister {
     
    # TO DO - Broadcast to all registered clients the $public_id of the client
           
-   return SAMP::Data::string( $status ); 
+   return Astro::VO::SAMP::Data::string( $status ); 
 
 }
 
@@ -139,11 +139,11 @@ sub setMetadata {
    my $reference = shift;
    my %metadata = %$reference;
    
-   print "setMetaData(  ) called at " . SAMP::Util::time_in_UTC() . "\n";
+   print "setMetaData(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
    print "Called by samp.name = $metadata{'samp.name'}\n";   
     
    my $status; 
-   eval{ $status = SAMP::Hub::MetaData::write_metadata( $private_key, %metadata ); };
+   eval{ $status = Astro::VO::SAMP::Hub::MetaData::write_metadata( $private_key, %metadata ); };
    if ( $@ ) {
       print "$@";
       $status = 0;
@@ -152,7 +152,7 @@ sub setMetadata {
    # TO DO - Broadcast to all registered clients the new metadata of the client
 
      
-   return SAMP::Data::string( $status )
+   return Astro::VO::SAMP::Data::string( $status )
 
 }
 
@@ -160,16 +160,16 @@ sub setXmlrpcCallback {
    my $self = shift;
    my $private_key = shift;
    my $endpoint = shift;
-   print "setXmlrpcCallback(  ) called at " . SAMP::Util::time_in_UTC() . "\n";
+   print "setXmlrpcCallback(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
    
-   my $app = SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
+   my $app = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
    print "Called by samp.name = $app\n";  
 
    my %metadata;
    $metadata{ "$app.callable" } = 1;
    $metadata{ "$app.xmlrpc" } = $endpoint;
    my $status; 
-   eval{ $status = SAMP::Hub::MetaData::write_metadata( $private_key, %metadata ); };
+   eval{ $status = Astro::VO::SAMP::Hub::MetaData::write_metadata( $private_key, %metadata ); };
    if ( $@ ) {
       print "$@";
       $status = 0;
@@ -177,7 +177,7 @@ sub setXmlrpcCallback {
 
    # TO DO - Broadcast to all registered clients the new metadata of the client
      
-   return SAMP::Data::string( $status )   
+   return Astro::VO::SAMP::Data::string( $status )   
 
 }
 
@@ -187,8 +187,8 @@ sub setMTypes {
    my $reference = shift;
    my @mtypes = @$reference;
 
-   print "setMTypes(  ) called at " . SAMP::Util::time_in_UTC() . "\n";
-   my $app = SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
+   print "setMTypes(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+   my $app = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
    print "Called by samp.name = $app\n";  
 
    # TO DO - Serialise list of MTypes to metadata file. How?
@@ -199,7 +199,7 @@ sub setMTypes {
    }
    
    my $status;
-   eval{ $status = SAMP::Hub::MetaData::write_metadata( $private_key, %metadata ); };
+   eval{ $status = Astro::VO::SAMP::Hub::MetaData::write_metadata( $private_key, %metadata ); };
    if ( $@ ) {
       print "$@";
       $status = 0;
@@ -207,7 +207,7 @@ sub setMTypes {
    
    # TO DO - Broadcast to all registered clients the new metadata of the client
    
-   return SAMP::Data::string( $status )   
+   return Astro::VO::SAMP::Data::string( $status )   
 }
 
 
@@ -216,18 +216,18 @@ sub getMTypes {
    my $private_key = shift;
    my $client_id = shift;
 
-   print "getMTypes(  ) called at " . SAMP::Util::time_in_UTC() . "\n";
-   my $app = SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
+   print "getMTypes(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+   my $app = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
    print "Called by samp.name = $app\n";  
    
-   my $look_up = SAMP::Hub::MetaData::private_from_public( $client_id );
-   my %metadata = SAMP::Hub::MetaData::slurp_metadata( $look_up );
+   my $look_up = Astro::VO::SAMP::Hub::MetaData::private_from_public( $client_id );
+   my %metadata = Astro::VO::SAMP::Hub::MetaData::slurp_metadata( $look_up );
    my @mtypes;
    foreach my $key ( keys %metadata ) {
       push @mtypes, $metadata{$key} if $key =~ "mtype";
    }  
 
-   return SAMP::Data::list( @mtypes );
+   return Astro::VO::SAMP::Data::list( @mtypes );
 }
 
 sub getMetadata {
@@ -235,31 +235,31 @@ sub getMetadata {
    my $private_key = shift;
    my $client_id = shift;
 
-   print "getMetadata(  ) called at " . SAMP::Util::time_in_UTC() . "\n";
-   my $app = SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
+   print "getMetadata(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+   my $app = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
    print "Called by samp.name = $app\n";  
    
-   my $look_up = SAMP::Hub::MetaData::private_from_public( $client_id );
-   my %metadata = SAMP::Hub::MetaData::slurp_metadata( $look_up );
+   my $look_up = Astro::VO::SAMP::Hub::MetaData::private_from_public( $client_id );
+   my %metadata = Astro::VO::SAMP::Hub::MetaData::slurp_metadata( $look_up );
    
-   return SAMP::Data::map( %metadata );
+   return Astro::VO::SAMP::Data::map( %metadata );
 }
 
 sub getRegisteredClients {
    my $self = shift;
    my $private_key = shift;
 
-   print "getRegisteredClients(  ) called at " . SAMP::Util::time_in_UTC() . "\n";
-   my $app = SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
+   print "getRegisteredClients(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+   my $app = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
    print "Called by samp.name = $app\n";  
    
-   my %clients = SAMP::Hub::MetaData::list_clients( );
+   my %clients = Astro::VO::SAMP::Hub::MetaData::list_clients( );
    my @list;
    foreach my $key ( keys %clients ) {
       push @list, $clients{$key};
    }
     
-   return SAMP::Data::list( @list );
+   return Astro::VO::SAMP::Data::list( @list );
 }
 
 sub getSubscribedClients {
@@ -267,19 +267,19 @@ sub getSubscribedClients {
    my $private_key = shift;
    my $mtype = shift;
 
-   print "getSubscribedClients(  ) called at " . SAMP::Util::time_in_UTC() . "\n";
-   my $app = SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
+   print "getSubscribedClients(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+   my $app = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
    print "Called by samp.name = $app\n";  
    
-   my %clients = SAMP::Hub::MetaData::list_clients( );
+   my %clients = Astro::VO::SAMP::Hub::MetaData::list_clients( );
    my @client_ids;
    foreach my $client ( keys %clients ) {
-      if( SAMP::Hub::Config::client_supports_mtype( $client, $mtype ) ) {
+      if( Astro::VO::SAMP::Hub::Config::client_supports_mtype( $client, $mtype ) ) {
    	 push @client_ids, $clients{$client};
       } 
    }   
    
-   return SAMP::Data::list( @client_ids );
+   return Astro::VO::SAMP::Data::list( @client_ids );
 }
 
 sub notify { 
@@ -289,27 +289,27 @@ sub notify {
    my $reference = shift;
    my %message = %$reference;
 
-   print "notify(  ) called at " . SAMP::Util::time_in_UTC() . "\n";
-   my $app = SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
+   print "notify(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+   my $app = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
    print "Called by samp.name = $app\n";  
    
-   my $public_id = SAMP::Hub::MetaData::public_from_private( $private_key );
-   my $recipient_key = SAMP::Hub::MetaData::private_from_public( $recipient_id );
+   my $public_id = Astro::VO::SAMP::Hub::MetaData::public_from_private( $private_key );
+   my $recipient_key = Astro::VO::SAMP::Hub::MetaData::private_from_public( $recipient_id );
    
-   my $name = SAMP::Hub::MetaData::get_metadata( $recipient_key, "samp.name" );
-   my $callable = SAMP::Hub::MetaData::get_metadata( $recipient_key, "$name.callable" );
+   my $name = Astro::VO::SAMP::Hub::MetaData::get_metadata( $recipient_key, "samp.name" );
+   my $callable = Astro::VO::SAMP::Hub::MetaData::get_metadata( $recipient_key, "$name.callable" );
    $callable = 0 unless defined $callable; # might just be registering
    
    my $mtype = $message{mtype};
-   my $supported = SAMP::Hub::MetaData::client_supports_mtype($recipient_key, $mtype);
+   my $supported = Astro::VO::SAMP::Hub::MetaData::client_supports_mtype($recipient_key, $mtype);
    $supported = 0 unless defined $supported; # might just be registering
    
    print "samp.name = $name, callable = $callable, supported = $supported\n";
    
    if( $callable && $supported ) {
       print "Passing notification to samp.name = $name\n";
-      my $relayed = SAMP::Data::map( %message );
-      my $url = SAMP::Hub::MetaData::get_metadata( $recipient_key, "$name.xmlrpc" );
+      my $relayed = Astro::VO::SAMP::Data::map( %message );
+      my $url = Astro::VO::SAMP::Hub::MetaData::get_metadata( $recipient_key, "$name.xmlrpc" );
       
       print "Application is at $url\n";
       my $rpc = new XMLRPC::Lite();
@@ -335,7 +335,7 @@ sub notify {
    } else {
       $status = 0;
    }      
-   return SAMP::Data::string( $status );
+   return Astro::VO::SAMP::Data::string( $status );
 
 }
 
@@ -348,17 +348,17 @@ sub notifyAll {
    #use Data::Dumper;
    #print Dumper( $reference );
 
-   print "notifyAll(  ) called at " . SAMP::Util::time_in_UTC() . "\n";
-   my $app = SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
+   print "notifyAll(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+   my $app = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
    print "Called by samp.name = $app\n";  
      
-   my %list = SAMP::Hub::MetaData::list_clients( );       
+   my %list = Astro::VO::SAMP::Hub::MetaData::list_clients( );       
    foreach my $key ( keys %list ) {
-      my $recipient_id = SAMP::Hub::MetaData::public_from_private( $key );
+      my $recipient_id = Astro::VO::SAMP::Hub::MetaData::public_from_private( $key );
       notify( $self, $private_key, $recipient_id, $reference );
    }
 
-   return SAMP::Data::string( 1 );
+   return Astro::VO::SAMP::Data::string( 1 );
 
 }
 
@@ -370,28 +370,28 @@ sub call {
    my $reference = shift;
    my %message = %$reference;
 
-   print "call(  ) called at " . SAMP::Util::time_in_UTC() . "\n";
-   my $app = SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
+   print "call(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+   my $app = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
    print "Called by samp.name = $app\n";
    print "Message has id = $msg_id\n";
    
-   my $public_id = SAMP::Hub::MetaData::public_from_private( $private_key );
-   my $recipient_key = SAMP::Hub::MetaData::private_from_public( $recipient_id );
+   my $public_id = Astro::VO::SAMP::Hub::MetaData::public_from_private( $private_key );
+   my $recipient_key = Astro::VO::SAMP::Hub::MetaData::private_from_public( $recipient_id );
    
-   my $name = SAMP::Hub::MetaData::get_metadata( $recipient_key, "samp.name" );
-   my $callable = SAMP::Hub::MetaData::get_metadata( $recipient_key, "$name.callable" );
+   my $name = Astro::VO::SAMP::Hub::MetaData::get_metadata( $recipient_key, "samp.name" );
+   my $callable = Astro::VO::SAMP::Hub::MetaData::get_metadata( $recipient_key, "$name.callable" );
    $callable = 0 unless defined $callable; # might just be registering
    
    my $mtype = $message{mtype};
-   my $supported = SAMP::Hub::MetaData::client_supports_mtype($recipient_key, $mtype);
+   my $supported = Astro::VO::SAMP::Hub::MetaData::client_supports_mtype($recipient_key, $mtype);
    $supported = 0 unless defined $supported; # might just be registering
    
    print "samp.name = $name, callable = $callable, supported = $supported\n";
    
    if( $callable && $supported ) {
       print "Passing call to samp.name = $name\n";
-      my $relayed = SAMP::Data::map( %message );
-      my $url = SAMP::Hub::MetaData::get_metadata( $recipient_key, "$name.xmlrpc" );
+      my $relayed = Astro::VO::SAMP::Data::map( %message );
+      my $url = Astro::VO::SAMP::Hub::MetaData::get_metadata( $recipient_key, "$name.xmlrpc" );
       
       print "Application is at $url\n";
       my $rpc = new XMLRPC::Lite();
@@ -420,7 +420,7 @@ sub call {
    } else {
       $status = 0;
    }      
-   return SAMP::Data::string( $status );
+   return Astro::VO::SAMP::Data::string( $status );
 }
 
 sub callAll { 
@@ -433,17 +433,17 @@ sub callAll {
    #use Data::Dumper;
    #print Dumper( $reference );
 
-   print "callAll(  ) called at " . SAMP::Util::time_in_UTC() . "\n";
-   my $app = SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
+   print "callAll(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+   my $app = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
    print "Called by samp.name = $app\n";  
      
-   my %list = SAMP::Hub::MetaData::list_clients( );       
+   my %list = Astro::VO::SAMP::Hub::MetaData::list_clients( );       
    foreach my $key ( keys %list ) {
-      my $recipient_id = SAMP::Hub::MetaData::public_from_private( $key );
+      my $recipient_id = Astro::VO::SAMP::Hub::MetaData::public_from_private( $key );
       call( $self, $private_key, $recipient_id, $msg_id, $reference );
    }
 
-   return SAMP::Data::string( 1 );
+   return Astro::VO::SAMP::Data::string( 1 );
 
 
 }
@@ -455,14 +455,14 @@ sub callAndWait {
    my $reference = shift;
    my %message = %$reference;
 
-   print "callAndWait(  ) called at " . SAMP::Util::time_in_UTC() . "\n";
-   my $app = SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
+   print "callAndWait(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+   my $app = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
    print "Called by samp.name = $app\n";
    print "Intended for public id = $public_id\n";
-   my $private_id = SAMP::Hub::MetaData::private_from_public( $public_id );
+   my $private_id = Astro::VO::SAMP::Hub::MetaData::private_from_public( $public_id );
    print "Private key of this application is $private_id\n";
-   my $recipient = SAMP::Hub::MetaData::get_metadata( $private_id, "samp.name" );   
-   my $callable = SAMP::Hub::MetaData::get_metadata( $private_id, "$recipient.callable" );
+   my $recipient = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_id, "samp.name" );   
+   my $callable = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_id, "$recipient.callable" );
    $callable = 0 unless defined $callable; # might just be registering
    print "Intended for samp.name = $recipient, callable = $callable\n";      
    
@@ -470,7 +470,7 @@ sub callAndWait {
    print "WARNING: RETURNING EMPTY MAP TO CLIENT\n";
    
    my %response = ( );
-   return SAMP::Data::map( %response );
+   return Astro::VO::SAMP::Data::map( %response );
 }
 
 sub reply { 
@@ -481,30 +481,30 @@ sub reply {
    my $reference = shift;
    my %message = %$reference;
 
-   print "reply(  ) called at " . SAMP::Util::time_in_UTC() . "\n";
-   my $app = SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
+   print "reply(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+   my $app = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
    print "Called by samp.name = $app\n";  
    print "Message has id = $hub_msg_id\n";
    
-   my $sender_id = SAMP::Hub::MetaData::public_from_private( $private_key );
+   my $sender_id = Astro::VO::SAMP::Hub::MetaData::public_from_private( $private_key );
    
    my ( $public_id, $msg_id) = split "_", $hub_msg_id;
    $public_id =~ s/msg-id:/client-id:/;
    $msg_id = "msg-id:" . $msg_id;
    
    print "Intended for public id = $public_id\n";
-   my $private_id = SAMP::Hub::MetaData::private_from_public( $public_id );
+   my $private_id = Astro::VO::SAMP::Hub::MetaData::private_from_public( $public_id );
    print "Private key of this application is $private_id\n";
-   my $recipient = SAMP::Hub::MetaData::get_metadata( $private_id, "samp.name" );   
-   my $callable = SAMP::Hub::MetaData::get_metadata( $private_id, "$recipient.callable" );
+   my $recipient = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_id, "samp.name" );   
+   my $callable = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_id, "$recipient.callable" );
    $callable = 0 unless defined $callable; # might just be registering
    print "Intended for samp.name = $recipient, callable = $callable\n";
   
    if( $callable ) {
       print "Returning reply to samp.name = $recipient\n";
       print "Success state = $success\n";
-      my $relayed = SAMP::Data::map( %message );
-      my $url = SAMP::Hub::MetaData::get_metadata( $private_id, "$recipient.xmlrpc" );
+      my $relayed = Astro::VO::SAMP::Data::map( %message );
+      my $url = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_id, "$recipient.xmlrpc" );
       
       print "Application is at $url\n";
       my $rpc = new XMLRPC::Lite();
@@ -530,7 +530,7 @@ sub reply {
    } else {
       $status = 0;
    }      
-   return SAMP::Data::string( $status );
+   return Astro::VO::SAMP::Data::string( $status );
 
 }
 

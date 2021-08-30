@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 
 use strict;
-use lib "./lib/perl5/";     
 
 =head1 NAME
 
@@ -36,32 +35,32 @@ use Net::Domain qw(hostname hostdomain);
 
 use XMLRPC::Lite;
 
-use SAMP::Transport::HTTP::Daemon;
-use SAMP::Discovery;
-use SAMP::Hub;
-use SAMP::Hub::Util;
+use Astro::VO::SAMP::Transport::HTTP::Daemon;
+use Astro::VO::SAMP::Discovery;
+use Astro::VO::SAMP::Hub;
+use Astro::VO::SAMP::Hub::Util;
 
 use sigtrap qw/ die normal-signals error-signals /;
 
 $SIG{INT} = sub {  
    print "Trapped SIGINT\n";
    print "Notify all clients...\n";
-   SAMP::Hub::Util::notify_hub_shutting_down( );
+   Astro::VO::SAMP::Hub::Util::notify_hub_shutting_down( );
    print "Deleting lock file...\n";
-   SAMP::Hub::Util::delete_lock_file( );
+   Astro::VO::SAMP::Hub::Util::delete_lock_file( );
    print "Deleting state files...\n";
-   SAMP::Hub::MetaData::delete_files( );
+   Astro::VO::SAMP::Hub::MetaData::delete_files( );
    exit;
 };
 
 $SIG{TERM} = sub {   
    print "Trapped SIGTERM\n";
    print "Notify all clients...\n";
-   SAMP::Hub::Util::notify_hub_shutting_down( );
+   Astro::VO::SAMP::Hub::Util::notify_hub_shutting_down( );
    print "Deleting lock file...\n";
-   SAMP::Hub::Util::delete_lock_file( );
+   Astro::VO::SAMP::Hub::Util::delete_lock_file( );
    print "Deleting state files...\n";
-   SAMP::Hub::MetaData::delete_files( );
+   Astro::VO::SAMP::Hub::MetaData::delete_files( );
    exit;
 };
 
@@ -89,7 +88,7 @@ print "Checking for running Hub process...\n";
 # then we should delete the lock file and start up our own hub process.
 
 # Is the Hub running?
-my $hub_status = SAMP::Discovery::hub_running( );
+my $hub_status = Astro::VO::SAMP::Discovery::hub_running( );
 if ( $hub_status ) {
   print "Found a existing Hub process\n";
   print "Exiting...\n";
@@ -99,17 +98,17 @@ if ( $hub_status ) {
 print "No running Hub found\n";
 
 # No hub running, might have an existing lock file?
-my $file_status = SAMP::Discovery::lock_file_present( );
+my $file_status = Astro::VO::SAMP::Discovery::lock_file_present( );
 if ( $file_status ) {
    print "Found and orphan lock file\n";
-   eval { SAMP::Hub::Util::delete_lock_file( ); };
+   eval { Astro::VO::SAMP::Hub::Util::delete_lock_file( ); };
    if ( $@ ) {
       croak( "$@" );
    } else {
       print "Unlinked orphan lock file\n";   
    }
    print "Cleaning up previous Hub's metadata files...\n";
-   SAMP::Hub::MetaData::delete_files( );   
+   Astro::VO::SAMP::Hub::MetaData::delete_files( );   
 }       
  
 # A P P L I C A T I O N   K E Y S ---------------------------------------------
@@ -117,13 +116,13 @@ if ( $file_status ) {
 print "Generating public and private keys for Hub\n";
 
 # Generate application keys for the Hub itself.
-my ( $hub_public_id, $hub_private_id) = SAMP::Hub::Util::generate_app_keys( );
+my ( $hub_public_id, $hub_private_id) = Astro::VO::SAMP::Hub::Util::generate_app_keys( );
 print "public_id = $hub_public_id\n";
 print "private_id = $hub_private_id\n";
 
-# store them in the SAMP::Hub class for later retrieveal from forked threads
-SAMP::Hub::public_key( $hub_public_id );
-SAMP::Hub::private_key( $hub_private_id );
+# store them in the Astro::VO::SAMP::Hub class for later retrieveal from forked threads
+Astro::VO::SAMP::Hub::public_key( $hub_public_id );
+Astro::VO::SAMP::Hub::private_key( $hub_private_id );
  
 # X M L - R P C   S E R V E R ------------------------------------------------- 
 
@@ -133,7 +132,7 @@ SAMP::Hub::private_key( $hub_private_id );
 print "Starting XMLRPC Daemon...\n";
 
 my $daemon;
-eval { $daemon = new SAMP::Transport::HTTP::Daemon(
+eval { $daemon = new Astro::VO::SAMP::Transport::HTTP::Daemon(
        LocalPort => $port, LocalHost => $host, ReuseAddr => 1 ); };
 if ( $@ ) {
    croak( "$@" );
@@ -141,7 +140,7 @@ if ( $@ ) {
 
 # We're using inheritence as syntactic to work around the auto-dispatch path
 # problems and dispatch to properly camel cased objects. We probably should
-# do $daemon->dispatch_to('samp::hub::isAlive' => 'SAMP::Hub::isAlive') for
+# do $daemon->dispatch_to('samp::hub::isAlive' => 'Astro::VO::SAMP::Hub::isAlive') for
 # each method but the "use base" hack seems cleaner.
 
 $daemon->dispatch_to( "samp::hub" ) ; 
@@ -149,7 +148,7 @@ $daemon->dispatch_to( "samp::hub" ) ;
 my $url = $daemon->url();   
 print "Started at $url\n";
 
-eval { SAMP::Hub::Util::create_lock_file( $url ); };
+eval { Astro::VO::SAMP::Hub::Util::create_lock_file( $url ); };
 if ( $@ ) {
    croak( "$@" );
 } else {
@@ -164,11 +163,11 @@ if ( $@ ) {
 # C L E A N   U P -------------------------------------------------------------
 
 # Send notifications to all clients
-SAMP::Hub::Util::notify_hub_shutting_down( );
+Astro::VO::SAMP::Hub::Util::notify_hub_shutting_down( );
 
 # Clean up after ourselves
-SAMP::Hub::Util::delete_lock_file( );
-SAMP::Hub::MetaData::delete_files( );
+Astro::VO::SAMP::Hub::Util::delete_lock_file( );
+Astro::VO::SAMP::Hub::MetaData::delete_files( );
 
 END {
    
@@ -197,6 +196,6 @@ Copyright (C) 2008 Babilim Light Industries. All Rights Reserved.
 # S A M P : : H U B ------------------------------------------------------------
 
 package samp::hub;
-use base ( "SAMP::Hub" );
+use base ( "Astro::VO::SAMP::Hub" );
 
 1;

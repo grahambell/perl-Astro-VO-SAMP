@@ -1,4 +1,4 @@
-package SAMP::Util;
+package Astro::VO::SAMP::Util;
 
 use strict;
 use warnings;
@@ -15,19 +15,19 @@ use DateTime;
 
 =head1 NAME
 
-SAMP::Util - Utility routines
+Astro::VO::SAMP::Util - Utility routines
 
 =head1 SYNOPSIS
 
-  use SAMP::Util;
+  use Astro::VO::SAMP::Util;
   
-  my $iso_time_string = SAMP::Util::time_in_UTC( );
-  my ( $decimal_ra, $decimal_dec ) = SAMP::Util::convert_from_sextuplets( $ra, $dec);  
-  my ( $ra, $dec ) = SAMP::Util::convert_to_sextuplets( $decimal_ra, $decimal_dec);  
+  my $iso_time_string = Astro::VO::SAMP::Util::time_in_UTC( );
+  my ( $decimal_ra, $decimal_dec ) = Astro::VO::SAMP::Util::convert_from_sextuplets( $ra, $dec);  
+  my ( $ra, $dec ) = Astro::VO::SAMP::Util::convert_to_sextuplets( $decimal_ra, $decimal_dec);  
     
 =head1 DESCRIPTION
 
-This module contains utility routines useful for SAMP Hubs and Clients.
+This module contains utility routines useful for Astro::VO::SAMP Hubs and Clients.
 
 =cut
 

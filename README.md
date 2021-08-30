@@ -1,5 +1,5 @@
-Perl-SAMP
-=========
+perl-Astro-VO-SAMP
+==================
 
 A SAMP implementation in Perl.
 

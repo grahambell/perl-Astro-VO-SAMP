@@ -1,4 +1,4 @@
-package SAMP::Hub::MetaData;
+package Astro::VO::SAMP::Hub::MetaData;
 
 use strict;
 use warnings;
@@ -22,20 +22,20 @@ $config_file = File::Spec->catfile( $config_dir, "applications.dat" );
 
 =head1 NAME
 
-SAMP::Hub::MetaData - Access to Hub config
+Astro::VO::SAMP::Hub::MetaData - Access to Hub config
 
 =head1 SYNOPSIS
 
-  use SAMP::Hub::MetaData;
+  use Astro::VO::SAMP::Hub::MetaData;
 
-  my $bool = SAMP::Hub::MetaData::metadata_present( $private_key );
+  my $bool = Astro::VO::SAMP::Hub::MetaData::metadata_present( $private_key );
   
-  my $bool = SAMP::Hub::MetaData::write_metadata( $private_key, %metadata );
-  my %metadata = SAMP::Hub::MetaData::slurp_metadata( $private_key );
-  my $value = SAMP::Hub::MetaData::get_metadata( $private_key, $key );
-  my $bool = SAMP::Hub::MetaData::delete_metadata( $private_key );
+  my $bool = Astro::VO::SAMP::Hub::MetaData::write_metadata( $private_key, %metadata );
+  my %metadata = Astro::VO::SAMP::Hub::MetaData::slurp_metadata( $private_key );
+  my $value = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, $key );
+  my $bool = Astro::VO::SAMP::Hub::MetaData::delete_metadata( $private_key );
 
-  my $bool = SAMP::Hub::MetaData::delete_files( );
+  my $bool = Astro::VO::SAMP::Hub::MetaData::delete_files( );
   
 The last method will delete all backend state for the hub (used at shutdown).
   

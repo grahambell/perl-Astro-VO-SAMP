@@ -1,4 +1,4 @@
-package SAMP::Client::Util;
+package Astro::VO::SAMP::Client::Util;
 
 use strict;
 use warnings;
@@ -19,23 +19,23 @@ use XMLRPC::Lite;
 use POSIX qw/:sys_wait_h/;
 use Errno qw/EAGAIN/;
 
-use SAMP::Transport::HTTP::Daemon;
-use SAMP::Discovery;
-use SAMP::Util;
+use Astro::VO::SAMP::Transport::HTTP::Daemon;
+use Astro::VO::SAMP::Discovery;
+use Astro::VO::SAMP::Util;
 
 =head1 NAME
 
-SAMP::Client::Util - Utility routines
+Astro::VO::SAMP::Client::Util - Utility routines
 
 =head1 SYNOPSIS
 
-  use SAMP::Client::Util;
+  use Astro::VO::SAMP::Client::Util;
   
-  my $bool = SAMP::Client::Util::wait_for_hub( )  
-  my $private_key = SAMP::Client::Util::register( $samp_secret );
-  my $bool = SAMP::Client::Util::unregister( );
-  my $bool = SAMP::Client::Util::send_metadata( SAMP::Data::map( %metadata ) );
-  my $bool = SAMP::Client::Util::send_metadata( SAMP::Data::map( %metadata ) );
+  my $bool = Astro::VO::SAMP::Client::Util::wait_for_hub( )  
+  my $private_key = Astro::VO::SAMP::Client::Util::register( $samp_secret );
+  my $bool = Astro::VO::SAMP::Client::Util::unregister( );
+  my $bool = Astro::VO::SAMP::Client::Util::send_metadata( Astro::VO::SAMP::Data::map( %metadata ) );
+  my $bool = Astro::VO::SAMP::Client::Util::send_metadata( Astro::VO::SAMP::Data::map( %metadata ) );
 
 =head1 DESCRIPTION
 
@@ -49,7 +49,7 @@ sub wait_for_hub {
    
    REGISTER: {
    
-   $hub_status = SAMP::Discovery::hub_running( );
+   $hub_status = Astro::VO::SAMP::Discovery::hub_running( );
    unless( $hub_status ) {
       sleep( 5 );
       redo REGISTER;
@@ -59,32 +59,32 @@ sub wait_for_hub {
 }
 
 sub hub_discovery {
-   my %metadata = SAMP::Client::metadata();
+   my %metadata = Astro::VO::SAMP::Client::metadata();
    
    print "Waiting for Hub to start up...\n";
 
    # We wait for a hub to start up
    my $hub_status = wait_for_hub( );
-   print "Found Hub at " . SAMP::Discovery::get_xmlrpc_url( ) . "\n";
+   print "Found Hub at " . Astro::VO::SAMP::Discovery::get_xmlrpc_url( ) . "\n";
 
    # register with the Hub using $samp_secret and get our $private_key
 
    print "Registering with Hub...\n";
    my $private_key = register( );
    print "Registered with Hub, private key = $private_key\n";
-   SAMP::Client::private_key( $private_key );
+   Astro::VO::SAMP::Client::private_key( $private_key );
 
    print "Getting Hub public key...\n";
    my $hub_key = get_hub_key( );
    if ( $hub_key ) {
       print "Hub public_id = $hub_key\n";
-      SAMP::Client::hub_key( $hub_key );
+      Astro::VO::SAMP::Client::hub_key( $hub_key );
    } else {
       print "Unable to retrieve public_id from Hub\n";   
    }   
 
    print "Sending meta-data to Hub...\n";
-   my $data = SAMP::Data::map( %metadata );
+   my $data = Astro::VO::SAMP::Data::map( %metadata );
    my $status = send_metadata( $data );
    if ( $status ) {
       print "Sucessfully registered meta-data with Hub\n";
@@ -111,7 +111,7 @@ sub fork_server {
         } elsif ( defined $pid && $pid == 0 ) {
               print "Forking daemon process... pid = $pid\n";
               my $daemon;
-              eval { $daemon = new SAMP::Transport::HTTP::Daemon(
+              eval { $daemon = new Astro::VO::SAMP::Transport::HTTP::Daemon(
                      LocalPort => $port, LocalHost => $host, ReuseAddr => 1 );};
               if ( $@ ) {
                  my $error = "$@";
@@ -151,8 +151,8 @@ sub register {
    REGISTER: {
 
    # We wait for a hub to start up
-   my $hub_status = SAMP::Client::Util::wait_for_hub( );
-   print "Found Hub at " . SAMP::Discovery::get_xmlrpc_url( ) . "\n";
+   my $hub_status = Astro::VO::SAMP::Client::Util::wait_for_hub( );
+   print "Found Hub at " . Astro::VO::SAMP::Discovery::get_xmlrpc_url( ) . "\n";
 
    # register with the Hub using $samp_secret and get our $private_key
 
@@ -168,12 +168,12 @@ sub register {
 }   
 
 sub unregister {
-   my $private_key = SAMP::Client::private_key( );
+   my $private_key = Astro::VO::SAMP::Client::private_key( );
    
    my $status;
-   if ( SAMP::Discovery::hub_running( ) ) {
+   if ( Astro::VO::SAMP::Discovery::hub_running( ) ) {
       my $rpc = new XMLRPC::Lite();
-      my $url = SAMP::Discovery::get_xmlrpc_url( );
+      my $url = Astro::VO::SAMP::Discovery::get_xmlrpc_url( );
       $rpc->proxy( $url );
       
       my $return; 
@@ -187,12 +187,12 @@ sub unregister {
 }
 
 sub get_hub_key {
-   my $private_key = SAMP::Client::private_key( );
+   my $private_key = Astro::VO::SAMP::Client::private_key( );
    
    my $status;
-   if ( SAMP::Discovery::hub_running( ) ) {
+   if ( Astro::VO::SAMP::Discovery::hub_running( ) ) {
       my $rpc = new XMLRPC::Lite();
-      my $url = SAMP::Discovery::get_xmlrpc_url( );
+      my $url = Astro::VO::SAMP::Discovery::get_xmlrpc_url( );
       $rpc->proxy( $url );
       
       my $return; 
@@ -209,12 +209,12 @@ sub get_hub_key {
 
 sub send_metadata {
    my $metadata = shift;
-   my $private_key = SAMP::Client::private_key( );
+   my $private_key = Astro::VO::SAMP::Client::private_key( );
    
    my $status;
-   if ( SAMP::Discovery::hub_running( ) ) {
+   if ( Astro::VO::SAMP::Discovery::hub_running( ) ) {
       my $rpc = new XMLRPC::Lite();
-      my $url = SAMP::Discovery::get_xmlrpc_url( );
+      my $url = Astro::VO::SAMP::Discovery::get_xmlrpc_url( );
       $rpc->proxy( $url );
       
       my $return; 
@@ -230,12 +230,12 @@ sub send_metadata {
 
 sub send_xmlrpc_callback {
    my $endpoint = shift;
-   my $private_key = SAMP::Client::private_key( );
+   my $private_key = Astro::VO::SAMP::Client::private_key( );
    
    my $status;
-   if ( SAMP::Discovery::hub_running( ) ) {
+   if ( Astro::VO::SAMP::Discovery::hub_running( ) ) {
       my $rpc = new XMLRPC::Lite();
-      my $url = SAMP::Discovery::get_xmlrpc_url( );
+      my $url = Astro::VO::SAMP::Discovery::get_xmlrpc_url( );
       $rpc->proxy( $url );
       
       my $return; 
@@ -251,12 +251,12 @@ sub send_xmlrpc_callback {
 
 sub send_mtypes {
    my $metadata = shift;
-   my $private_key = SAMP::Client::private_key( );
+   my $private_key = Astro::VO::SAMP::Client::private_key( );
    
    my $status;
-   if ( SAMP::Discovery::hub_running( ) ) {
+   if ( Astro::VO::SAMP::Discovery::hub_running( ) ) {
       my $rpc = new XMLRPC::Lite();
-      my $url = SAMP::Discovery::get_xmlrpc_url( );
+      my $url = Astro::VO::SAMP::Discovery::get_xmlrpc_url( );
       $rpc->proxy( $url );
       
       my $return; 
@@ -277,12 +277,12 @@ sub generate_msg_id {
 # P R I V A T E   M E T H O D S ----------------------------------------------
 
 sub _register {
-   my $samp_secret = SAMP::Discovery::get_samp_secret( );
+   my $samp_secret = Astro::VO::SAMP::Discovery::get_samp_secret( );
    
    my $private_key;
-   if ( SAMP::Discovery::hub_running( ) && defined $samp_secret ) {
+   if ( Astro::VO::SAMP::Discovery::hub_running( ) && defined $samp_secret ) {
       my $rpc = new XMLRPC::Lite();
-      my $url = SAMP::Discovery::get_xmlrpc_url( );
+      my $url = Astro::VO::SAMP::Discovery::get_xmlrpc_url( );
       $rpc->proxy( $url );
       
       my $return; 

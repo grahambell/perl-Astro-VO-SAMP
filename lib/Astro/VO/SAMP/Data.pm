@@ -1,4 +1,4 @@
-package SAMP::Data;
+package Astro::VO::SAMP::Data;
 
 use strict;
 use warnings;
@@ -18,15 +18,15 @@ use DateTime;
 
 =head1 NAME
 
-SAMP::Util - Utility routines
+Astro::VO::SAMP::Util - Utility routines
 
 =head1 SYNOPSIS
 
-  use SAMP::Data;
+  use Astro::VO::SAMP::Data;
   
-  my $reference = SAMP::Data::string( $scalar );
-  my $reference = SAMP::Data::list( @array );  
-  my $reference = SAMP::Data::map( %hash );  
+  my $reference = Astro::VO::SAMP::Data::string( $scalar );
+  my $reference = Astro::VO::SAMP::Data::list( @array );  
+  my $reference = Astro::VO::SAMP::Data::map( %hash );  
     
 =head1 DESCRIPTION
 

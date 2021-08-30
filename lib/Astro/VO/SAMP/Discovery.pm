@@ -1,4 +1,4 @@
-package SAMP::Discovery;
+package Astro::VO::SAMP::Discovery;
 
 use strict;
 use warnings;
@@ -21,19 +21,19 @@ $lock_file = File::Spec->catfile( $ENV{HOME}, ".samp" );
 
 =head1 NAME
 
-SAMP::Discovery - Routines for Hub discovery
+Astro::VO::SAMP::Discovery - Routines for Hub discovery
 
 =head1 SYNOPSIS
 
-  use SAMP::Discovery;
+  use Astro::VO::SAMP::Discovery;
   
-  my $bool = SAMP::Discovery::lock_file_present( );
-  my $lock_filename = SAMP::Discovery::lock_file( );
+  my $bool = Astro::VO::SAMP::Discovery::lock_file_present( );
+  my $lock_filename = Astro::VO::SAMP::Discovery::lock_file( );
   
-  my @list_client_ids = SAMP::Discovery::hub_running( );
+  my @list_client_ids = Astro::VO::SAMP::Discovery::hub_running( );
   
-  my $samp_xmlrpc_url = SAMP::Discovery::get_xmlrpc_url( );
-  my $samp_secret = SAMP::Discovery::get_samp_secret( );
+  my $samp_xmlrpc_url = Astro::VO::SAMP::Discovery::get_xmlrpc_url( );
+  my $samp_secret = Astro::VO::SAMP::Discovery::get_samp_secret( );
     
 =head1 DESCRIPTION
 

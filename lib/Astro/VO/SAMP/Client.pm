@@ -1,4 +1,4 @@
-package SAMP::Client;
+package Astro::VO::SAMP::Client;
 
 use strict;
 use warnings;
@@ -15,16 +15,16 @@ use vars qw/ $VERSION @EXPORT_OK @ISA $PRIVATE_KEY $HUB_KEY $METADATA /;
 
 =head1 NAME
 
-SAMP::Client - Routines to handle SAMP calls
+Astro::VO::SAMP::Client - Routines to handle SAMP calls
 
 =head1 SYNOPSIS
 
-  use SAMP::Client;
+  use Astro::VO::SAMP::Client;
 
-  my $status = SAMP::Client::private_key( $private_key );
-  my $private_key = SAMP::Client::private_key( );
-  my $status = SAMP::Client::hub_key( $hub_public_id );
-  my $hub_public_id = SAMP::Client::hub_key( );
+  my $status = Astro::VO::SAMP::Client::private_key( $private_key );
+  my $private_key = Astro::VO::SAMP::Client::private_key( );
+  my $status = Astro::VO::SAMP::Client::hub_key( $hub_public_id );
+  my $hub_public_id = Astro::VO::SAMP::Client::hub_key( );
 
 =head1 DESCRIPTION
 
@@ -65,7 +65,7 @@ sub recieveNotification {
    my $reference = shift;
    my %message = %$reference;
       
-   print "recieveNotification( ) called at " . SAMP::Util::time_in_UTC() . "\n";
+   print "recieveNotification( ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
    print "Called by sender-id = $sender_id\n";   
    
    foreach my $key ( sort keys %message ) {
@@ -88,7 +88,7 @@ sub recieveNotification {
    
    print "Done.\n";  
    
-   return SAMP::Data::string( 1 );   
+   return Astro::VO::SAMP::Data::string( 1 );   
 
 }
 
@@ -99,7 +99,7 @@ sub recieveCall {
    my $reference = shift;
    my %message = %$reference;
    
-   print "recieveCall( ) called at " . SAMP::Util::time_in_UTC() . "\n";
+   print "recieveCall( ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
    print "sender-id = $sender_id\n";
    print "msg-id = $msg_id\n";   
    
@@ -126,11 +126,11 @@ sub recieveCall {
        print "Calling reply(  ) in Hub\n";
 
        my $status;
-       if ( SAMP::Discovery::hub_running( ) ) {
+       if ( Astro::VO::SAMP::Discovery::hub_running( ) ) {
        
           print "Hub is still running...\n";
           my $rpc = new XMLRPC::Lite();
-          my $url = SAMP::Discovery::get_xmlrpc_url( );
+          my $url = Astro::VO::SAMP::Discovery::get_xmlrpc_url( );
           $rpc->proxy( $url );
       
           my %message = ( );
@@ -138,8 +138,8 @@ sub recieveCall {
       
           my ( $return, $status ); 
           eval{ $return = $rpc->call( 'samp.hub.reply', 
-      	     	     SAMP::Client::private_key( ), $msg_id,
-	     	     SAMP::Data::string( 1 ), 
+      	     	     Astro::VO::SAMP::Client::private_key( ), $msg_id,
+	     	     Astro::VO::SAMP::Data::string( 1 ), 
 	     	     \%message ); };
           unless ( $@ || $return->fault() ) {
              $status = $return->result();
@@ -152,7 +152,7 @@ sub recieveCall {
    }
 
    print "Done.\n";
-   return SAMP::Data::string( 1 );   
+   return Astro::VO::SAMP::Data::string( 1 );   
 
 }
 
@@ -164,7 +164,7 @@ sub recieveResponse {
    my $reference = shift;
    my %response = %$reference;
    
-   print "recieveResponse( ) called at " . SAMP::Util::time_in_UTC() . "\n";
+   print "recieveResponse( ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
    print "sender-id = $responder_id\n";
    print "msg-id = $msg_id\n"; 
    print "success state = $success\n";

@@ -1,4 +1,4 @@
-package SAMP::Hub::Util;
+package Astro::VO::SAMP::Hub::Util;
 
 use strict;
 use warnings;
@@ -13,25 +13,25 @@ use vars qw/ $VERSION @EXPORT_OK @ISA /;
 		 generate_samp_secret generate_app_keys
 		 notify_hub_shutting_down /;
 
-use SAMP::Discovery;
-use SAMP::Util;
-use SAMP::Hub::MetaData;
+use Astro::VO::SAMP::Discovery;
+use Astro::VO::SAMP::Util;
+use Astro::VO::SAMP::Hub::MetaData;
 
 =head1 NAME
 
-SAMP::Hub::Util - Utility routines
+Astro::VO::SAMP::Hub::Util - Utility routines
 
 =head1 SYNOPSIS
 
-  use SAMP::Hub::Util;
+  use Astro::VO::SAMP::Hub::Util;
   
-  my $bool = SAMP::Util::delete_lock_file( );
-  my $bool = SAMP::Util::create_lock_file( $samp_xmlrpc_url );
+  my $bool = Astro::VO::SAMP::Util::delete_lock_file( );
+  my $bool = Astro::VO::SAMP::Util::create_lock_file( $samp_xmlrpc_url );
   
-  my $samp_secret = SAMP::Util::generate_samp_secret( );
-  my ( $public_key, $private_key ) = SAMP::Util::generate_app_keys( );
+  my $samp_secret = Astro::VO::SAMP::Util::generate_samp_secret( );
+  my ( $public_key, $private_key ) = Astro::VO::SAMP::Util::generate_app_keys( );
   
-  SAMP::Util::notify_hub_shutting_down( $hub_public_id );
+  Astro::VO::SAMP::Util::notify_hub_shutting_down( $hub_public_id );
   
 =head1 DESCRIPTION
 
@@ -41,9 +41,9 @@ This module contains utility routines useful for SAMP Hubs and clients.
 
 
 sub delete_lock_file {
-   return undef unless SAMP::Discovery::lock_file_present( );
+   return undef unless Astro::VO::SAMP::Discovery::lock_file_present( );
    
-   my $lock_file = SAMP::Discovery::lock_file( );
+   my $lock_file = Astro::VO::SAMP::Discovery::lock_file( );
    my $status;
    eval { $status = unlink $lock_file };
    return $status;
@@ -53,14 +53,14 @@ sub create_lock_file {
    my $samp_xmlrpc_url = shift;
 
    my $text = "";
-   $text .= "# SAMP lockfile written at " . SAMP::Util::time_in_UTC() . "\n";
+   $text .= "# SAMP lockfile written at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
    $text .= '# Hub implementation by Alasdair Allan <alasdair@babilim.co.uk>';
    $text .= "\n# Required keys:\n";
    $text .= "samp.secret=" . generate_samp_secret( ) . "\n";
    $text .= "samp.hub.xmlrpc.url=$samp_xmlrpc_url\n";  
    $text .= "samp.profile.version=1.0\n";
 
-   my $lock_file = SAMP::Discovery::lock_file( );
+   my $lock_file = Astro::VO::SAMP::Discovery::lock_file( );
    my $status = 0;
    if ( open ( LOCK, ">$lock_file" ) ) {
       print LOCK $text;
@@ -101,21 +101,21 @@ sub generate_app_keys {
 
 sub notify_hub_shutting_down {
 
-    my %list = SAMP::Hub::MetaData::list_clients( );    
-    my $hub_public_id = SAMP::Hub::public_key( );
+    my %list = Astro::VO::SAMP::Hub::MetaData::list_clients( );    
+    my $hub_public_id = Astro::VO::SAMP::Hub::public_key( );
     #print "Hub public_id = $hub_public_id\n"; 
     
     foreach my $key ( keys %list ) {
-       my $name = SAMP::Hub::MetaData::get_metadata( $key, "samp.name" );
+       my $name = Astro::VO::SAMP::Hub::MetaData::get_metadata( $key, "samp.name" );
        print "Notifying application $name\n";
-       my $callable = SAMP::Hub::MetaData::get_metadata( $key, "$name.callable" );
+       my $callable = Astro::VO::SAMP::Hub::MetaData::get_metadata( $key, "$name.callable" );
        
        my %hash;
        $hash{mtype} = "app.event.stopping";
-       my $message = SAMP::Data::map( %hash );
+       my $message = Astro::VO::SAMP::Data::map( %hash );
        
        if( $callable ) {
-          my $url = SAMP::Hub::MetaData::get_metadata( $key, "$name.xmlrpc" );
+          my $url = Astro::VO::SAMP::Hub::MetaData::get_metadata( $key, "$name.xmlrpc" );
           
 	  print "Application at $url\n";
 	  my $rpc = new XMLRPC::Lite();
