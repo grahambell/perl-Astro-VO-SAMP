@@ -8,8 +8,9 @@ require Exporter;
 use UNIVERSAL 'isa';
 use XMLRPC::Lite;
 
-use vars qw/ $VERSION @EXPORT_OK @ISA /;
-'$Revision: 1.22 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+use vars qw/ @EXPORT_OK @ISA /;
+
+our $VERSION = '2.00';
 
 @ISA = qw/ Exporter /;
 @EXPORT_OK = qw/ string list map /;
@@ -70,10 +71,6 @@ sub map {
 
 
 =back
-
-=head1 REVISION
-
-$Id: Util.pm,v 1.22 2008/03/17 17:23:31 aa Exp $
 
 =head1 AUTHORS
 

@@ -25,8 +25,9 @@ Profile XML-RPC API as specified in the IVOA Working Draft document.
 
 =cut
 
-use vars qw/ $VERSION $host $port /;
-'$Revision: 1.22 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+use vars qw/ $host $port /;
+
+our $VERSION = '2.00';
 
 use Carp;
 use Getopt::Long;
@@ -178,10 +179,6 @@ END {
 
 
 =back
-
-=head1 REVISION
-
-$Id: samp_hub.pl,v 1.22 2008/03/17 17:23:31 aa Exp $
 
 =head1 AUTHORS
 

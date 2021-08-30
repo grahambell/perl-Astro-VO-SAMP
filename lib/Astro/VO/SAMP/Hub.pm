@@ -11,8 +11,9 @@ use Astro::VO::SAMP::Hub::MetaData;
 
 require Exporter;
 
-use vars qw/ $VERSION @EXPORT_OK @ISA $PRIVATE_KEY $PUBLIC_KEY /;
-'$Revision: 1.22 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+use vars qw/ @EXPORT_OK @ISA $PRIVATE_KEY $PUBLIC_KEY /;
+
+our $VERSION = '2.00';
 
 @ISA = qw/ Exporter /;
 @EXPORT_OK = qw/ private_key public_key
@@ -536,10 +537,6 @@ sub reply {
 
 
 =back
-
-=head1 REVISION
-
-$Id: Hub.pm,v 1.22 2008/03/17 17:23:31 aa Exp $
 
 =head1 AUTHORS
 

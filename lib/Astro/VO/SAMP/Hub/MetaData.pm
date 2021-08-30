@@ -7,8 +7,9 @@ require Exporter;
 use Carp;
 use File::Spec;
 
-use vars qw/ $VERSION @EXPORT_OK @ISA /;
-'$Revision: 1.22 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+use vars qw/ @EXPORT_OK @ISA /;
+
+our $VERSION = '2.00';
 
 @ISA = qw/ Exporter /;
 @EXPORT_OK = qw/ metadata_present write_metadata get_metadata delete_metadata
@@ -335,10 +336,6 @@ sub slurp_config_file {
 }
 
 =back
-
-=head1 REVISION
-
-$Id: Util.pm,v 1.22 2008/03/17 17:23:31 aa Exp $
 
 =head1 AUTHORS
 

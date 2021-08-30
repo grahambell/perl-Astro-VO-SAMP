@@ -5,8 +5,9 @@ use warnings;
 
 require Exporter;
 
-use vars qw/ $VERSION @EXPORT_OK @ISA /;
-'$Revision: 1.22 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+use vars qw/ @EXPORT_OK @ISA /;
+
+our $VERSION = '2.00';
 
 @ISA = qw/ Exporter /;
 @EXPORT_OK = qw/ lock_file_present lock_file
@@ -114,10 +115,6 @@ sub hub_running {
 }
 
 =back
-
-=head1 REVISION
-
-$Id: Discovery.pm,v 1.22 2008/03/17 17:23:31 aa Exp $
 
 =head1 AUTHORS
 

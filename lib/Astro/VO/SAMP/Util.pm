@@ -5,8 +5,9 @@ use warnings;
 
 require Exporter;
 
-use vars qw/ $VERSION @EXPORT_OK @ISA /;
-'$Revision: 1.22 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+use vars qw/ @EXPORT_OK @ISA /;
+
+our $VERSION = '2.00';
 
 @ISA = qw/ Exporter /;
 @EXPORT_OK = qw/ time_in_UTC convert_from_sextuplets convert_to_sextuplets /;
@@ -87,10 +88,6 @@ sub convert_to_sextuplets {
 
 
 =back
-
-=head1 REVISION
-
-$Id: Util.pm,v 1.22 2008/03/17 17:23:31 aa Exp $
 
 =head1 AUTHORS
 
