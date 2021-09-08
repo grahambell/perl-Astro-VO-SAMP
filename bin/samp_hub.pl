@@ -13,7 +13,7 @@ samp_hub.pl - A SAMP Hub
 =head1 DESCRIPTION
 
 This is a prototype SAMP Hub implementing the IVOA's Simple Application
-Messaging Protocol Version 1.00 (IVOA Working Draft 2008-04-30). SAMP is a
+Messaging Protocol Version 1.3 (IVOA Recommendation 2012-04-11). SAMP is a
 direct decendent of the PLASTIC protocol. Broadly speaking, SAMP is an abstract
 framework for loosely coupled asynchronous RPC-like and/or event-based
 communication with extensible message semantics using structured but
@@ -21,11 +21,9 @@ weakly-typed data and based on a central service providing multi-directional
 publish/subscribe message brokering.
 
 This application implements a version of the protocol defined by the Standard
-Profile XML-RPC API as specified in the IVOA Working Draft document.
+Profile XML-RPC API as specified in the IVOA recommendation version 1.3.
 
 =cut
-
-use vars qw/ $host $port /;
 
 our $VERSION = '2.00';
 
@@ -70,6 +68,8 @@ $SIG{TERM} = sub {
 print "Prototype SAMP Hub v$VERSION\n\n";
 
 # Handle command line options
+my ($host, $port);
+
 GetOptions( "port=s" => \$port );
 unless ( defined $port ) {
    $port = 8001;

@@ -3,15 +3,15 @@ package Astro::VO::SAMP::Client;
 use strict;
 use warnings;
 
-use UNIVERSAL 'isa';
-require Exporter;
+use parent qw/Exporter/;
 
-use vars qw/ @EXPORT_OK @ISA $PRIVATE_KEY $HUB_KEY $METADATA /;
+use Scalar::Util qw/reftype/;
+
+our ($PRIVATE_KEY, $HUB_ID, $SELF_ID, $METADATA);
 
 our $VERSION = '2.00';
 
-@ISA = qw/ Exporter /;
-@EXPORT_OK = qw/ private_key hub_key metadata
+our @EXPORT_OK = qw/ private_key hub_id metadata
                  recieveNotification recieveCall recieveResponse /;
 
 =head1 NAME
@@ -24,8 +24,8 @@ Astro::VO::SAMP::Client - Routines to handle SAMP calls
 
   my $status = Astro::VO::SAMP::Client::private_key( $private_key );
   my $private_key = Astro::VO::SAMP::Client::private_key( );
-  my $status = Astro::VO::SAMP::Client::hub_key( $hub_public_id );
-  my $hub_public_id = Astro::VO::SAMP::Client::hub_key( );
+  my $status = Astro::VO::SAMP::Client::hub_id( $hub_public_id );
+  my $hub_public_id = Astro::VO::SAMP::Client::hub_id( );
 
 =head1 DESCRIPTION
 
@@ -42,13 +42,20 @@ sub private_key {
 
 }
 
-sub hub_key {
+sub hub_id {
   if (@_) {
-    $HUB_KEY = shift;
+    $HUB_ID = shift;
   }
-  return $HUB_KEY;
+  return $HUB_ID;
 
 
+}
+
+sub self_id {
+  if (@_) {
+    $SELF_ID = shift;
+  }
+  return $SELF_ID;
 }
 
 sub metadata {
@@ -70,7 +77,8 @@ sub recieveNotification {
    print "Called by sender-id = $sender_id\n";
 
    foreach my $key ( sort keys %message ) {
-      if ( isa $message{$key}, "HASH" ) {
+      my $reftype = reftype($message{$key});
+      if ((defined $reftype) and ($reftype eq "HASH")) {
          print "$key = {\n";
          my %subhash = %{$message{$key}};
          foreach my $subkey ( sort keys %subhash ) {
@@ -82,7 +90,7 @@ sub recieveNotification {
       }
    }
 
-   if( $message{mtype} eq "app.event.stopping" && $sender_id eq hub_key( ) ) {
+   if( $message{mtype} eq "app.event.stopping" && $sender_id eq hub_id( ) ) {
       print "Hub stopping...\n";
       exit(0);
    }
@@ -105,7 +113,8 @@ sub recieveCall {
    print "msg-id = $msg_id\n";
 
    foreach my $key ( sort keys %message ) {
-      if ( isa $message{$key}, "HASH" ) {
+      my $reftype = reftype($message{$key});
+      if ((defined $reftype) and ($reftype eq "HASH")) {
          print "$key = {\n";
          my %subhash = %{$message{$key}};
          foreach my $subkey ( sort keys %subhash ) {
@@ -126,7 +135,7 @@ sub recieveCall {
        sleep(1);
        print "Calling reply(  ) in Hub\n";
 
-       my $status;
+       my $status = 0;
        if ( Astro::VO::SAMP::Discovery::hub_running( ) ) {
 
           print "Hub is still running...\n";
@@ -143,7 +152,7 @@ sub recieveCall {
                     Astro::VO::SAMP::Data::string( 1 ),
                     \%message ); };
           unless ( $@ || $return->fault() ) {
-             $status = $return->result();
+             $status = 1;
           }
 
        } else {

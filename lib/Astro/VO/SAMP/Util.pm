@@ -3,14 +3,11 @@ package Astro::VO::SAMP::Util;
 use strict;
 use warnings;
 
-require Exporter;
-
-use vars qw/ @EXPORT_OK @ISA /;
+use parent qw/Exporter/;
 
 our $VERSION = '2.00';
 
-@ISA = qw/ Exporter /;
-@EXPORT_OK = qw/ time_in_UTC convert_from_sextuplets convert_to_sextuplets /;
+our @EXPORT_OK = qw/ time_in_UTC convert_from_sextuplets convert_to_sextuplets /;
 
 use DateTime;
 

@@ -3,23 +3,20 @@ package Astro::VO::SAMP::Hub::MetaData;
 use strict;
 use warnings;
 
-require Exporter;
+use parent qw/Exporter/;
+
 use Carp;
 use File::Spec;
 
-use vars qw/ @EXPORT_OK @ISA /;
-
 our $VERSION = '2.00';
 
-@ISA = qw/ Exporter /;
-@EXPORT_OK = qw/ metadata_present write_metadata get_metadata delete_metadata
+our @EXPORT_OK = qw/ metadata_present write_metadata get_metadata delete_metadata
                  delete_files add_application remove_application is_registered
                  public_from_private private_from_public list_clients
                  client_supports_mtype /;
 
-use vars qw / $config_dir  $config_file /;
-$config_dir = File::Spec->catdir( $ENV{HOME}, ".samp-hub" );
-$config_file = File::Spec->catfile( $config_dir, "applications.dat" );
+our $config_dir = File::Spec->catdir( $ENV{HOME}, ".samp-hub" );
+our $config_file = File::Spec->catfile( $config_dir, "applications.dat" );
 
 =head1 NAME
 

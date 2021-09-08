@@ -3,14 +3,11 @@ package Astro::VO::SAMP::Hub::Util;
 use strict;
 use warnings;
 
-require Exporter;
-
-use vars qw/ @EXPORT_OK @ISA /;
+use parent qw/Exporter/;
 
 our $VERSION = '2.00';
 
-@ISA = qw/ Exporter /;
-@EXPORT_OK = qw/ delete_lock_file create_lock_file
+our @EXPORT_OK = qw/ delete_lock_file create_lock_file
                  generate_samp_secret generate_app_keys
                  notify_hub_shutting_down /;
 

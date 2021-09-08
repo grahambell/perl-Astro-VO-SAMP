@@ -3,17 +3,14 @@ package Astro::VO::SAMP::Data;
 use strict;
 use warnings;
 
-require Exporter;
+use parent qw/Exporter/;
 
-use UNIVERSAL 'isa';
+use Scalar::Util qw/reftype/;
 use XMLRPC::Lite;
-
-use vars qw/ @EXPORT_OK @ISA /;
 
 our $VERSION = '2.00';
 
-@ISA = qw/ Exporter /;
-@EXPORT_OK = qw/ string list map /;
+our @EXPORT_OK = qw/ string list map /;
 
 use DateTime;
 
@@ -45,8 +42,17 @@ sub list {
   my @array = @_;
 
   my @list;
-  foreach my $i ( 0 ... $#array ) {
-     push @list, XMLRPC::Data->type( string => $array[$i] );
+  foreach my $item ( @array ) {
+     my $reftype = reftype($item);
+     unless (defined $reftype) {
+       push @list, XMLRPC::Data->type( string => $item );
+     }
+     elsif ($reftype eq 'HASH') {
+       push @list, Astro::VO::SAMP::Data::map($item);
+     }
+     elsif ($reftype eq 'ARRAY') {
+       push @list, Astro::VO::SAMP::Data::list($item);
+     }
   }
   return \@list;
 }
@@ -56,7 +62,8 @@ sub map {
 
    my %map;
    foreach my $key ( sort keys %hash ) {
-      if ( isa $hash{$key}, "HASH" ) {
+      my $reftype = reftype($hash{$key});
+      if ((defined $reftype) and ($reftype eq 'HASH')) {
          my %subhash = %{$hash{$key}};
          foreach my $subkey ( sort keys %subhash ) {
             $subhash{$subkey} = XMLRPC::Data->type(string=>$subhash{$subkey});

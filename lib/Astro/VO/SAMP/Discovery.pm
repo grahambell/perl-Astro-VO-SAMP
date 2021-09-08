@@ -3,22 +3,18 @@ package Astro::VO::SAMP::Discovery;
 use strict;
 use warnings;
 
-require Exporter;
-
-use vars qw/ @EXPORT_OK @ISA /;
+use parent qw/Exporter/;
 
 our $VERSION = '2.00';
 
-@ISA = qw/ Exporter /;
-@EXPORT_OK = qw/ lock_file_present lock_file
+our @EXPORT_OK = qw/ lock_file_present lock_file
                  get_xmlrpc_url get_samp_secret
                  hub_running/;
 
 use File::Spec;
 use XMLRPC::Lite;
 
-use vars qw / $lock_file /;
-$lock_file = File::Spec->catfile( $ENV{HOME}, ".samp" );
+our $lock_file = File::Spec->catfile( $ENV{HOME}, ".samp" );
 
 =head1 NAME
 
@@ -105,9 +101,9 @@ sub hub_running {
       my $rpc = new XMLRPC::Lite();
       $rpc->proxy($samp_xmlrpc);
       my $return;
-      eval{ $return = $rpc->call( 'samp.hub.isAlive' ); };
+      eval{ $return = $rpc->call( 'samp.hub.ping' ); };
       unless ( $@ || $return->fault() ) {
-        $running = $return->result();
+        $running = 1;
       }
    }
    return $running;

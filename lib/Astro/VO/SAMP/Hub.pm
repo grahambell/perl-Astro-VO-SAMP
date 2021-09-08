@@ -3,22 +3,21 @@ package Astro::VO::SAMP::Hub;
 use strict;
 use warnings;
 
+use parent qw/Exporter/;
+
 use XMLRPC::Lite;
 
 use Astro::VO::SAMP::Util;
 use Astro::VO::SAMP::Data;
 use Astro::VO::SAMP::Hub::MetaData;
 
-require Exporter;
-
-use vars qw/ @EXPORT_OK @ISA $PRIVATE_KEY $PUBLIC_KEY /;
+our ($PRIVATE_KEY, $PUBLIC_KEY);
 
 our $VERSION = '2.00';
 
-@ISA = qw/ Exporter /;
-@EXPORT_OK = qw/ private_key public_key
-                 isAlive getHubId register unregister
-                 setMetadata setXmlrpcCallback setMTypes /;
+our @EXPORT_OK = qw/ private_key public_key
+                 ping register unregister
+                 declareMetadata setXmlrpcCallback declareSubscriptions /;
 
 =head1 NAME
 
@@ -53,14 +52,9 @@ sub public_key {
 }
 
 
-sub isAlive {
-   print "isAlive( ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+sub ping {
+   print "ping( ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
    return Astro::VO::SAMP::Data::string( 1 );
-}
-
-sub getHubId {
-   print "getHubId( ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
-   return Astro::VO::SAMP::Data::string( public_key() );
 }
 
 sub register {
@@ -87,11 +81,16 @@ sub register {
          undef $private_id;
       }
 
+      # TO DO - Broadcast to all registered clients the $public_id of the client
+
+      return Astro::VO::SAMP::Data::map(
+        'samp.hub-id' => public_key(),
+        'samp.self-id' => $public_id,
+        'samp.private-key' => $private_id );
    }
 
-   # TO DO - Broadcast to all registered clients the $public_id of the client
-
-   return Astro::VO::SAMP::Data::string( $private_id );
+   # TODO: instead need to return failure message!
+   return Astro::VO::SAMP::Data::string("");
 }
 
 sub unregister {
@@ -134,13 +133,13 @@ sub unregister {
 }
 
 
-sub setMetadata {
+sub declareMetadata {
    my $self = shift;
    my $private_key = shift;
    my $reference = shift;
    my %metadata = %$reference;
 
-   print "setMetaData(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+   print "declareMetadata(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
    print "Called by samp.name = $metadata{'samp.name'}\n";
 
    my $status;
@@ -182,13 +181,13 @@ sub setXmlrpcCallback {
 
 }
 
-sub setMTypes {
+sub declareSubscriptions {
    my $self = shift;
    my $private_key = shift;
    my $reference = shift;
-   my @mtypes = @$reference;
+   my @mtypes = keys %$reference;
 
-   print "setMTypes(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+   print "declareSubscriptions(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
    my $app = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
    print "Called by samp.name = $app\n";
 
@@ -212,12 +211,12 @@ sub setMTypes {
 }
 
 
-sub getMTypes {
+sub getSubscriptions {
    my $self = shift;
    my $private_key = shift;
    my $client_id = shift;
 
-   print "getMTypes(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
+   print "getSubscriptions(  ) called at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
    my $app = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
    print "Called by samp.name = $app\n";
 
@@ -228,7 +227,7 @@ sub getMTypes {
       push @mtypes, $metadata{$key} if $key =~ "mtype";
    }
 
-   return Astro::VO::SAMP::Data::list( @mtypes );
+   return Astro::VO::SAMP::Data::map( map {$_ => {}} @mtypes );
 }
 
 sub getMetadata {
@@ -240,10 +239,18 @@ sub getMetadata {
    my $app = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
    print "Called by samp.name = $app\n";
 
-   my $look_up = Astro::VO::SAMP::Hub::MetaData::private_from_public( $client_id );
-   my %metadata = Astro::VO::SAMP::Hub::MetaData::slurp_metadata( $look_up );
+   my %metadata;
+   if ($client_id eq public_key()) {
+      %metadata = (
+        'samp.name' => 'samp_hub.pl',
+      );
+   }
+   else {
+      my $look_up = Astro::VO::SAMP::Hub::MetaData::private_from_public( $client_id );
+      %metadata = Astro::VO::SAMP::Hub::MetaData::slurp_metadata( $look_up );
+   }
 
-   return Astro::VO::SAMP::Data::map( %metadata );
+   return Astro::VO::SAMP::Data::map( map {$_ =~ /^mtype\./ ? () : ($_ => $metadata{$_})} sort keys %metadata );
 }
 
 sub getRegisteredClients {
@@ -254,10 +261,12 @@ sub getRegisteredClients {
    my $app = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "samp.name" );
    print "Called by samp.name = $app\n";
 
+   my $client_id = Astro::VO::SAMP::Hub::MetaData::get_metadata( $private_key, "client.id" );
+
    my %clients = Astro::VO::SAMP::Hub::MetaData::list_clients( );
-   my @list;
+   my @list = (public_key());
    foreach my $key ( keys %clients ) {
-      push @list, $clients{$key};
+      push @list, $clients{$key} if $clients{$key} ne $client_id;
    }
 
    return Astro::VO::SAMP::Data::list( @list );

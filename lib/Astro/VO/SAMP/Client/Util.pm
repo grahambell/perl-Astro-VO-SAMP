@@ -3,15 +3,12 @@ package Astro::VO::SAMP::Client::Util;
 use strict;
 use warnings;
 
-require Exporter;
-
-use vars qw/ @EXPORT_OK @ISA /;
+use parent qw/Exporter/;
 
 our $VERSION = '2.00';
 
-@ISA = qw/ Exporter /;
-@EXPORT_OK = qw/ wait_for_hub hub_discovery fork_server
-                 register unregister get_hub_key
+our @EXPORT_OK = qw/ wait_for_hub hub_discovery fork_server
+                 register unregister
                  send_metadata send_xmlrpc_callback send_mtypes
                  generate_msg_id /;
 
@@ -71,18 +68,18 @@ sub hub_discovery {
    # register with the Hub using $samp_secret and get our $private_key
 
    print "Registering with Hub...\n";
-   my $private_key = register( );
+   my $reg_info = register( );
+   my $private_key = $reg_info->{'samp.private-key'};
    print "Registered with Hub, private key = $private_key\n";
    Astro::VO::SAMP::Client::private_key( $private_key );
 
-   print "Getting Hub public key...\n";
-   my $hub_key = get_hub_key( );
-   if ( $hub_key ) {
-      print "Hub public_id = $hub_key\n";
-      Astro::VO::SAMP::Client::hub_key( $hub_key );
-   } else {
-      print "Unable to retrieve public_id from Hub\n";
-   }
+   my $hub_id = $reg_info->{'samp.hub-id'};
+   print "Hub public_id = $hub_id\n";
+   Astro::VO::SAMP::Client::hub_id( $hub_id );
+
+   my $self_id = $reg_info->{'samp.self-id'};
+   print "Client self_id = $self_id\n";
+   Astro::VO::SAMP::Client::self_id( $self_id );
 
    print "Sending meta-data to Hub...\n";
    my $data = Astro::VO::SAMP::Data::map( %metadata );
@@ -148,7 +145,7 @@ sub fork_server {
 
 sub register {
 
-   my $private_key;
+   my $reg_info;
    REGISTER: {
 
    # We wait for a hub to start up
@@ -158,20 +155,20 @@ sub register {
    # register with the Hub using $samp_secret and get our $private_key
 
    print "Registering with Hub...\n";
-   $private_key = _register(  );
-   unless ( defined $private_key ) {
+   $reg_info = _register(  );
+   unless ( defined $reg_info ) {
       print "Unable to register with Hub, retrying in 5 seconds...\n";
       sleep( 5 );
       redo REGISTER;
    }
    }
-   return $private_key;
+   return $reg_info;
 }
 
 sub unregister {
    my $private_key = Astro::VO::SAMP::Client::private_key( );
 
-   my $status;
+   my $status = 0;
    if ( Astro::VO::SAMP::Discovery::hub_running( ) ) {
       my $rpc = new XMLRPC::Lite();
       my $url = Astro::VO::SAMP::Discovery::get_xmlrpc_url( );
@@ -180,28 +177,7 @@ sub unregister {
       my $return;
       eval{ $return = $rpc->call( 'samp.hub.unregister', $private_key ); };
       unless ( $@ || $return->fault() ) {
-        $status = $return->result();
-      }
-   }
-   return $status;
-
-}
-
-sub get_hub_key {
-   my $private_key = Astro::VO::SAMP::Client::private_key( );
-
-   my $status;
-   if ( Astro::VO::SAMP::Discovery::hub_running( ) ) {
-      my $rpc = new XMLRPC::Lite();
-      my $url = Astro::VO::SAMP::Discovery::get_xmlrpc_url( );
-      $rpc->proxy( $url );
-
-      my $return;
-      eval{ $return = $rpc->call( 'samp.hub.getHubId', $private_key ); };
-      unless ( $@ || $return->fault() ) {
-        $status = $return->result();
-
-        print "$@";
+        $status = 1;
       }
    }
    return $status;
@@ -212,17 +188,17 @@ sub send_metadata {
    my $metadata = shift;
    my $private_key = Astro::VO::SAMP::Client::private_key( );
 
-   my $status;
+   my $status = 0;
    if ( Astro::VO::SAMP::Discovery::hub_running( ) ) {
       my $rpc = new XMLRPC::Lite();
       my $url = Astro::VO::SAMP::Discovery::get_xmlrpc_url( );
       $rpc->proxy( $url );
 
       my $return;
-      eval{ $return = $rpc->call( 'samp.hub.setMetadata',
+      eval{ $return = $rpc->call( 'samp.hub.declareMetadata',
                                   $private_key, $metadata ); };
       unless ( $@ || $return->fault() ) {
-        $status = $return->result();
+        $status = 1;
       }
    }
    return $status;
@@ -233,7 +209,7 @@ sub send_xmlrpc_callback {
    my $endpoint = shift;
    my $private_key = Astro::VO::SAMP::Client::private_key( );
 
-   my $status;
+   my $status = 0;
    if ( Astro::VO::SAMP::Discovery::hub_running( ) ) {
       my $rpc = new XMLRPC::Lite();
       my $url = Astro::VO::SAMP::Discovery::get_xmlrpc_url( );
@@ -243,7 +219,7 @@ sub send_xmlrpc_callback {
       eval{ $return = $rpc->call( 'samp.hub.setXmlrpcCallback',
                                   $private_key, $endpoint ); };
       unless ( $@ || $return->fault() ) {
-        $status = $return->result();
+        $status = 1;
       }
    }
    return $status;
@@ -254,17 +230,17 @@ sub send_mtypes {
    my $metadata = shift;
    my $private_key = Astro::VO::SAMP::Client::private_key( );
 
-   my $status;
+   my $status = 0;
    if ( Astro::VO::SAMP::Discovery::hub_running( ) ) {
       my $rpc = new XMLRPC::Lite();
       my $url = Astro::VO::SAMP::Discovery::get_xmlrpc_url( );
       $rpc->proxy( $url );
 
       my $return;
-      eval{ $return = $rpc->call( 'samp.hub.setMTypes',
+      eval{ $return = $rpc->call( 'samp.hub.declareSubscriptions',
                                   $private_key, $metadata ); };
       unless ( $@ || $return->fault() ) {
-        $status = $return->result();
+        $status = 1;
       }
    }
    return $status;
@@ -280,7 +256,7 @@ sub generate_msg_id {
 sub _register {
    my $samp_secret = Astro::VO::SAMP::Discovery::get_samp_secret( );
 
-   my $private_key;
+   my $reg_info = undef;
    if ( Astro::VO::SAMP::Discovery::hub_running( ) && defined $samp_secret ) {
       my $rpc = new XMLRPC::Lite();
       my $url = Astro::VO::SAMP::Discovery::get_xmlrpc_url( );
@@ -289,10 +265,10 @@ sub _register {
       my $return;
       eval{ $return = $rpc->call( 'samp.hub.register', $samp_secret ); };
       unless ( $@ || $return->fault() ) {
-        $private_key = $return->result();
+        $reg_info = $return->result();
       }
    }
-   return $private_key;
+   return $reg_info;
 }
 
 sub _generate_random_string {

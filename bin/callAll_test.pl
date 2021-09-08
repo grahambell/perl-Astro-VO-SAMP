@@ -8,20 +8,18 @@ callAll_test.pl - A SAMP Test Client
 
 =head1 SYNOPSIS
 
-  % ./notifyAll_test.pl [-port 8003]
+  % ./callAll_test.pl [-port 8003]
 
 =head1 DESCRIPTION
 
 This is a simple SAMP client which will register itself with a SAMP Hub and
 call callAll( ) in the Hub periodlically. By default it will generate
-coord.pointAt messages.
+coord.pointAt.sky messages.
 
 This application implements a version of the protocol defined by the Standard
-Profile XML-RPC API as specified in the IVOA Working Draft document.
+Profile XML-RPC API as specified in the IVOA recommendation version 1.3.
 
 =cut
-
-use vars qw/ $host $port $pid /;
 
 our $VERSION = '2.00';
 
@@ -51,6 +49,8 @@ $SIG{TERM} = sub {
 print "Testbed SAMP CallAll Client v$VERSION\n\n";
 
 # Handle command line options
+my ($host, $port, $pid);
+
 GetOptions( "port=s"  => \$port );
 
 unless ( defined $port ) {
@@ -66,7 +66,6 @@ my %metadata;
 $metadata{"samp.name"} = "callAll";
 $metadata{"samp.description.text"} = "This is a SAMP test client that periodically calls callAll.";
 $metadata{"samp.description.html"} = "<p>This is a SAMP test client that periodically calls callAll.</p>";
-$metadata{"samp.icon.url"} =  "http://www.babilim.co.uk/png/babilim_logo.png";
 $metadata{$metadata{"samp.name"}.".version"} = $VERSION;
 Astro::VO::SAMP::Client::metadata( %metadata );
 
@@ -104,7 +103,7 @@ while( 1 ) {
    push @mtypes, "app.event.starting";
    push @mtypes, "app.event.stopping";
 
-   my $data = Astro::VO::SAMP::Data::list( @mtypes );
+   my $data = Astro::VO::SAMP::Data::map( map {$_ => {}} @mtypes );
    my $status = Astro::VO::SAMP::Client::Util::send_mtypes( $data );
    if ( $status ) {
       print "Sucessfully registered MTypes with Hub\n";
@@ -125,17 +124,17 @@ while( 1 ) {
           sleep(10);
           print "\nHeartbeat at " . Astro::VO::SAMP::Util::time_in_UTC() . "\n";
 
-          my $status;
+          my $status = 0;
           if ( Astro::VO::SAMP::Discovery::hub_running( ) ) {
-             print "Calling callAll( coord.pointAt ) in Hub\n";
+             print "Calling callAll( coord.pointAt.sky ) in Hub\n";
              my $rpc = new XMLRPC::Lite();
              my $url = Astro::VO::SAMP::Discovery::get_xmlrpc_url( );
              $rpc->proxy( $url );
 
              my %message;
-             $message{mtype} = Astro::VO::SAMP::Data::string( "coord.pointAt" );
+             $message{'samp.mtype'} = Astro::VO::SAMP::Data::string( "coord.pointAt.sky" );
              my %params = ( "ra" => "180.0", "dec" => "-45.0" );
-             $message{params} = Astro::VO::SAMP::Data::map( %params );
+             $message{'samp.params'} = Astro::VO::SAMP::Data::map( %params );
              print "Passing RA = $params{ra}, Dec = $params{dec} to Hub\n";
 
              my ( $return, $status );
@@ -144,7 +143,7 @@ while( 1 ) {
                         Astro::VO::SAMP::Client::Util::generate_msg_id( ),
                         \%message ); };
              unless ( $@ || $return->fault() ) {
-                $status = $return->result();
+                $status = 1;
              }
 
           } else {

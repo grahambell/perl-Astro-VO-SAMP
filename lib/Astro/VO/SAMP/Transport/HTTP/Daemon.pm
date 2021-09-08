@@ -1,7 +1,6 @@
 package Astro::VO::SAMP::Transport::HTTP::Daemon;
 
 use strict;
-use vars qw(@ISA);
 
 use XMLRPC::Lite;
 use XMLRPC::Transport::HTTP;
@@ -11,7 +10,7 @@ use Data::Dumper;
 
 # Idea and implementation of Michael Douglass
 
-@ISA = qw(XMLRPC::Transport::HTTP::Daemon);
+our @ISA = qw/XMLRPC::Transport::HTTP::Daemon/;
 
 sub handle {
   my $self = shift->new;
